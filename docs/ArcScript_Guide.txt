@@ -1,0 +1,382 @@
+ArcScript Language Guide (MVP)
+===============================
+
+1. What is ArcScript?
+---------------------
+ArcScript is a domain-specific scripting language designed for game logic. It is intended to be simple, readable, and friendly to game designers and scripters, while being efficient enough to run as runtime scripting inside a game engine.
+
+At the current MVP level in this repository, ArcScript provides:
+- A comprehensive syntax for variables, expressions, conditionals, loops, functions, closures, tables, and objects.
+- A Rust-based implementation with a lexer, parser, AST, and a complete interpreter.
+- Structured error handling for both parse errors and runtime errors.
+- A REPL for interactive development.
+- An execution pipeline you can embed or extend for game scripting.
+
+ArcScript now supports most core features. Remaining work includes events, game-specific APIs, bytecode VM optimization, and advanced tooling (LSP, debugger).
+
+2. Overall Architecture
+-----------------------
+The current implementation follows a classic language pipeline:
+
+    source text -> Lexer -> Tokens -> Parser -> AST -> Interpreter -> Runtime Effects
+
+- Lexer (`src/lexer.rs`)
+  Converts the raw source string into a stream of tokens (identifiers, keywords, numbers, strings, operators, delimiters, EOF).
+
+- Parser (`src/parser.rs`)
+  Consumes tokens and builds an Abstract Syntax Tree (AST) representing the structure of the program.
+
+- AST (`src/ast.rs`)
+  Defines the core node types for expressions, statements, functions, and (future) objects/events.
+
+- Interpreter (`src/interpreter.rs`)
+  Walks the AST and executes it using a simple runtime environment that holds variables and values.
+
+- Entry point (`src/main.rs`)
+  Demonstrates a small, hard-coded ArcScript snippet that is lexed, parsed, and executed.
+
+This MVP focuses on clarity and correctness first, then will grow toward a bytecode VM and game-engine integration.
+
+3. Current Language Features (MVP)
+----------------------------------
+This section describes what the language currently supports in this repository.
+
+3.1 Basic Types
+---------------
+The runtime currently supports the following value types:
+
+- Int    (64-bit signed integers)
+- Float  (64-bit floating point)
+- Bool   (true/false)
+- String (UTF-8 strings)
+- Table  (key-value mappings, implemented as HashMap<String, Value>)
+- Function (first-class functions with closure capture)
+- Nil    (represents the absence of a value)
+
+These are implemented in the interpreter as:
+
+    enum Value {
+        Int(i64),
+        Float(f64),
+        Bool(bool),
+        String(String),
+        Function { decl: FuncDecl, closure: Option<Box<Environment>> },
+        Table(HashMap<String, Value>),
+        Nil,
+    }
+
+3.2 Variables
+-------------
+Variables are declared with the `var` keyword:
+
+    var x = 42;
+    var message = "Hello";
+
+A (currently ignored) type annotation can be written after a colon:
+
+    var hp: int = 100;
+
+In the MVP interpreter, type annotations are parsed but not enforced.
+
+3.3 Expressions
+---------------
+Supported expression forms include:
+
+- Literals:
+
+    123
+    3.14
+    true
+    false
+    nil
+    "hello world"
+
+- Identifiers:
+
+    x
+    hp
+
+- Unary operators:
+
+    -x
+    not x
+
+- Binary operators:
+
+    x + y
+    x - y
+    x * y
+    x / y
+    x == y
+    x != y
+    x < y
+    x <= y
+    x > y
+    x >= y
+    x and y
+    x or y
+
+The interpreter implements numeric arithmetic and comparisons for Int/Float, boolean logic for Bool, and string concatenation for String + String.
+
+3.4 Statements
+--------------
+Supported statements in the MVP are:
+
+- Variable declaration:
+
+    var x = 1 + 2 * 3;
+
+- Expression statement:
+
+    x + 1;
+
+- If / Elif / Else:
+
+    if x > 0 then {
+        var y = x + 1;
+    } elif x == 0 then {
+        var y = 0;
+    } else {
+        var y = -1;
+    } end
+
+- While loop:
+
+    while x < 10 do {
+        x = x + 1;
+    } end
+
+- Return statement (inside functions; functions are not executed yet in the MVP):
+
+    return x;
+
+Blocks are currently written with braces `{ ... }`. The grammar also uses keywords like `then`, `do`, and `end` to mark the structure of if/while and functions.
+
+3.5 Functions (Callable)
+------------------------
+Functions can be declared and are fully callable in the interpreter with closure support. A simple function declaration looks like this:
+
+    func add(a, b): {
+        return a + b;
+    } end
+
+You can call it like this:
+
+    var result = add(2, 3);
+
+At runtime, the interpreter:
+- Stores the function under its name in the environment, capturing the current environment as a closure.
+- When it sees a call expression `add(2, 3)`, it:
+  - Creates a new environment (scope) for the call that chains to the captured closure environment.
+  - Binds parameters (`a`, `b`) to the argument values (`2`, `3`).
+  - Executes the function body.
+  - Returns the value from the first `return` reached (or `nil` if no return is executed).
+
+Functions are first-class values and support closures: they can capture and reference variables from their defining scope.
+
+Example of a closure:
+
+    var x = 10;
+    func makeAdder(): {
+        func inner(n): {
+            return x + n;
+        } end
+        return inner;
+    } end
+    var adder = makeAdder();
+    var result = adder(5);  // result = 15
+
+In the AST, functions correspond to `FuncDecl` nodes with:
+- A name (e.g., `add`)
+- A list of parameters
+- A body statement (typically a Block)
+
+3.6 Tables
+----------
+Tables are key-value data structures (like dictionaries or objects in other languages). You can create them with table literals:
+
+    var player = {
+        name: "Hero",
+        hp: 100,
+        level: 5
+    };
+
+Access members with dot notation or index notation:
+
+    var name = player.name;
+    var hp = player["hp"];
+
+Tables are implemented as `HashMap<String, Value>` in the interpreter.
+
+3.7 Objects (Prototype Declarations)
+------------------------------------
+The grammar and runtime now support `object` declarations for defining game entity prototypes:
+
+    object Player: {
+        var x = 0;
+        var hp = 100;
+
+        func heal(amount): {
+            hp = hp + amount;
+        } end
+    } end
+
+At runtime:
+- The interpreter creates a Table with the object's fields and methods.
+- The object is stored in the environment by name.
+- You can access its members: `Player.hp`, `Player.heal(10)`
+
+3.8 Events (Planned)
+-------------------
+The grammar and AST include placeholders for `on` events, intended for game lifecycle hooks:
+
+    object Player: {
+        on update(dt): {
+            x = x + 1;
+        } end
+    } end
+
+At the current stage:
+- The parser can parse event declarations.
+- The interpreter does not yet execute them or provide an event dispatch system.
+
+Later versions will introduce:
+- Event dispatch (e.g., `on start`, `on update(dt)`, `on destroy`).
+- Script modules and per-entity script instances.
+
+4. How the Interpreter Works (MVP)
+----------------------------------
+The core runtime is implemented in `src/interpreter.rs`.
+
+4.1 Environment
+----------------
+The interpreter keeps a simple environment mapping variable names to values:
+
+    struct Environment {
+        values: HashMap<String, Value>,
+    }
+
+Currently, there is:
+- Nested scoped environments: blocks and function calls create child environments that chain to their parent.
+- Lexical scoping with shadowing is supported.
+- Functions capture their defining environment (closures), allowing access to outer variables even after the outer scope exits.
+
+4.2 Evaluating a Program
+------------------------
+The top-level entry is:
+
+    fn eval_program(&mut self, program: &Program)
+
+This simply walks the list of top-level statements and evaluates them in order.
+
+4.3 Evaluating Statements
+-------------------------
+The interpreter handles statements such as:
+
+- `VarDecl`:
+  - Evaluate the initializer expression.
+  - Bind the result to the given name in the environment.
+
+- `Expr` statement:
+  - Evaluate the expression and ignore its result.
+
+- `If`:
+  - Evaluate the condition as a Value.
+  - Apply truthiness rules (non-nil, non-false is true).
+  - Execute either the `then` block, one of the `elif` blocks, or the `else` block.
+
+- `While`:
+  - While the condition is truthy, execute the body block.
+
+- `Return`:
+  - Produces a Value; function calls now propagate return values back to the caller.
+
+- `FuncDecl`, `ObjectDecl`:
+  - Parsed and functions are executable in the interpreter; objects are still not executed at runtime in the MVP.
+
+4.4 Evaluating Expressions
+--------------------------
+Expressions are evaluated recursively:
+
+- `Literal` -> corresponding `Value`.
+- `Ident`   -> lookup in the environment; returns `Nil` if not found.
+- `Unary`   -> evaluate operand, apply `Negate` or `Not`.
+- `Binary`  -> evaluate left and right, then apply arithmetic/comparison/logical rules.
+
+Truthiness rules are simple:
+- `Bool(false)` and `Nil` are falsey.
+- Everything else is truthy.
+
+5. Running the Code
+-------------------
+You can run ArcScript in two modes:
+
+1. Demo mode (default):
+   cargo run
+
+   This executes the hardcoded demo in `src/main.rs`.
+
+2. REPL mode (interactive):
+   cargo run repl
+
+   This launches an interactive prompt where you can type ArcScript code line by line.
+   Type 'exit' to quit the REPL.
+
+3. Example scripts:
+   See the `examples/` directory for sample scripts demonstrating various features:
+   - basic.arc - Variables, functions, arithmetic
+   - tables_objects.arc - Tables and object declarations
+   - closures.arc - Closure capture and nested functions
+   - control_flow.arc - Loops and conditionals
+
+6. Limitations of the Current Implementation
+--------------------------------------------
+The current implementation has the following remaining limitations:
+
+- Event dispatch system is not yet implemented (events can be declared but not executed/triggered).
+- No game-specific API (no built-in functions for position, input, spawning, etc.).
+- No performance optimizations or bytecode VM (direct AST interpretation).
+- No developer tooling (syntax highlighting, LSP, VS Code extension, debugger) integrated yet.
+- No resource limits or sandboxing for safe embedding.
+
+These limitations will be addressed in future iterations.
+
+7. Roadmap (High-Level)
+------------------------
+Planned evolution of ArcScript beyond the current implementation:
+
+1. ✅ Function Calls and Scope - DONE
+   - Functions are first-class values with closure capture.
+   - Call frames, local scopes, and return value propagation implemented.
+
+2. ✅ Tables and Object Prototypes - DONE
+   - Runtime table values with member/index access.
+   - Object declarations create tables with methods and fields.
+
+3. 🚧 Events for Game Logic - IN PROGRESS
+   - Implement event dispatch (`on start`, `on update(dt)`, etc.).
+   - Provide a small built-in game API surface (logging, timing, position, spawning).
+
+4. Bytecode VM and Optimizations
+   - Compile AST to bytecode.
+   - Implement a stack-based virtual machine.
+   - Add basic optimizations (constant folding, peephole passes).
+
+5. Engine Integration
+   - Provide a stable C/Rust API for embedding in game engines.
+   - Define script module loading, per-entity script instances, and event calls.
+
+6. Tooling and Developer Experience
+   - TextMate grammar and VS Code extension.
+   - Language Server (LSP) with diagnostics, hover, go-to-definition, and completion.
+   - Debugger support.
+
+8. How to Keep this Guide in Sync
+---------------------------------
+Whenever the language changes in a significant way (new syntax, new runtime behavior, new game APIs, or new tooling), this guide should be updated to:
+
+- Describe new syntax/features.
+- Note any breaking changes.
+- Explain how the new features fit into the game scripting workflow.
+
+For now, this document reflects the **MVP** state of ArcScript as currently implemented in this repository.

@@ -1,0 +1,169 @@
+(* ArcScript EBNF grammar placeholder. The specialized AI should replace this with the full grammar. *)
+
+program = { statement } ;
+
+statement = expression, ";" ;
+
+expression = identifier | integer | string ;
+
+(*
+  ArcScript MVP EBNF Grammar
+  - This grammar focuses on the minimum subset needed for:
+    * variable declarations
+    * expressions
+    * function declarations
+    * object declarations with event handlers
+    * basic control flow (if/while)
+*)
+
+program        = { top_level } EOF ;
+
+top_level      = declaration | statement ;
+
+(* Declarations *)
+
+declaration    = var_decl
+                | func_decl
+                | object_decl
+                ;
+
+var_decl       = "var" identifier [":" type_ref] "=" expression ";" ;
+
+func_decl      = "func" identifier "(" [ param_list ] ")"
+                  [":" type_ref]
+                  ":" block "end" ;
+
+object_decl    = "object" identifier ":" object_body "end" ;
+
+object_body    = { object_member } ;
+
+object_member  = var_decl
+                | method_decl
+                | event_decl
+                ;
+
+method_decl    = "func" identifier "(" [ param_list ] ")"
+                  [":" type_ref]
+                  ":" block "end" ;
+
+event_decl     = "on" identifier
+                  ["(" [ param_list ] ")"]
+                  ":" block "end" ;
+
+param_list     = param { "," param } ;
+param          = identifier [":" type_ref] ["=" expression] ;
+
+(* Types (MVP: simple identifiers) *)
+
+type_ref       = identifier ;
+
+(* Statements & Blocks *)
+
+block          = { statement } ;
+
+statement      = var_decl
+                | if_stmt
+                | while_stmt
+                | return_stmt
+                | expr_stmt
+                ;
+
+if_stmt        = "if" expression "then" block
+                  { "elif" expression "then" block }
+                  [ "else" block ]
+                  "end" ;
+
+while_stmt     = "while" expression "do" block "end" ;
+
+return_stmt    = "return" [ expression ] ";" ;
+
+expr_stmt      = expression ";" ;
+
+(* Expressions *)
+
+expression     = assignment ;
+
+assignment     = or_expr
+                | (primary_expr assign_op assignment) ;
+
+assign_op      = "=" | "+=" | "-=" | "*=" | "/=" ;
+
+or_expr        = and_expr { "or" and_expr } ;
+and_expr       = equality { "and" equality } ;
+
+equality       = comparison { ("==" | "!=") comparison } ;
+
+comparison     = term { ("<" | "<=" | ">" | ">=") term } ;
+
+term           = factor { ("+" | "-") factor } ;
+
+factor         = unary { ("*" | "/") unary } ;
+
+unary          = [ ("-" | "not") ] unary
+                | primary_expr
+                ;
+
+primary_expr   = literal
+                | identifier
+                | call_expr
+                | member_expr
+                | grouping
+                | table_literal
+                ;
+
+grouping       = "(" expression ")" ;
+
+(* Calls & member access *)
+
+call_expr      = primary_simple { call_or_index_or_member } ;
+
+primary_simple = literal
+                | identifier
+                | grouping
+                | table_literal
+                ;
+
+call_or_index_or_member
+                = call_suffix
+                | index_suffix
+                | member_suffix
+                ;
+
+call_suffix    = "(" [ arg_list ] ")" ;
+index_suffix   = "[" expression "]" ;
+member_suffix  = "." identifier ;
+
+arg_list       = expression { "," expression } ;
+
+(* Literals *)
+
+literal        = int_lit
+                | float_lit
+                | string_lit
+                | bool_lit
+                | nil_lit
+                ;
+
+int_lit        = INTEGER ;
+float_lit      = FLOAT ;
+string_lit     = STRING ;
+bool_lit       = "true" | "false" ;
+nil_lit        = "nil" ;
+
+table_literal  = "{" [ table_field_list ] "}" ;
+
+table_field_list
+                = table_field { "," table_field } ;
+
+table_field    = ( identifier "=" expression )
+                | expression
+                ;
+
+(* Lexical tokens (described at lexer level) *)
+
+identifier     = IDENT ;
+
+INTEGER        = (* decimal or hex integer, defined in lexer *) ;
+FLOAT          = (* floating literal, defined in lexer       *) ;
+STRING         = (* quoted string literal, with escapes      *) ;
+EOF            = (* end of file marker                       *) ;
