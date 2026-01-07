@@ -1,6 +1,6 @@
 [package]
 name = "arcscript"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 authors = ["ArcScript Contributors"]
 description = "A domain-specific scripting language for game logic and interactive applications"
