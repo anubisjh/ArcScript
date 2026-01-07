@@ -4,61 +4,73 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/arcscript/rust.yml?branch=main)](https://github.com/yourusername/arcscript/actions)
 
-**ArcScript** is a modern, domain-specific scripting language designed for game logic and interactive applications. Built with Rust for performance and safety, ArcScript offers an intuitive syntax that's perfect for game designers, scripters, and developers.
+**ArcScript** is a scripting language I built specifically for game development and interactive applications. Think of it as a blend of Lua's simplicity and Python's readability, but tailored for game logic. It's written in Rust, so it's fast and reliable—perfect for when you need to script complex game behavior without worrying about crashes or performance issues.
 
-## ✨ Features
+Whether you're building an RPG with complex character systems, a puzzle game with intricate mechanics, or just need a clean way to script your game's logic, ArcScript has you covered.
 
-- 🚀 **Fast Execution**: Built on Rust for high-performance script execution
-- 🎯 **Simple Syntax**: Clean, readable syntax designed for game logic
-- 🔧 **First-Class Functions**: Closures with lexical scoping
-- 📦 **Tables & Objects**: Flexible data structures for game entities
-- 🛠️ **Rich Standard Library**: Built-in functions for common operations
-- 🔍 **Strong Error Handling**: Detailed error messages with line numbers
-- 💻 **Interactive REPL**: Test code instantly with the built-in REPL
-- 🎨 **Game-Focused**: Designed specifically for game scripting workflows
+## ✨ Why ArcScript?
 
-## 🚀 Quick Start
+I wanted a scripting language that feels natural to write and doesn't get in your way when you're prototyping game ideas. Here's what makes ArcScript different:
+
+- 🚀 **Genuinely Fast**: Built on Rust's foundation, so your scripts run smoothly even in complex game loops
+- 🎯 **Actually Readable**: No weird syntax quirks—if you can read basic code, you can read ArcScript
+- 🔧 **Real Closures**: First-class functions that actually work the way you'd expect them to
+- 📦 **Flexible Data Structures**: Tables and objects that make sense for game entities and state management
+- 🛠️ **Complete Standard Library**: All the math and string functions you need, already built in
+- 🔍 **Helpful Error Messages**: When something breaks, you'll know exactly where and why
+- 💻 **Interactive REPL**: Test your game logic on the fly without recompiling anything
+- 🎨 **Built for Games**: Every feature was chosen with game development in mind
+
+## 🚀 Getting Started
 
 ### Installation
+
+First, make sure you have Rust installed (you'll need version 1.70 or newer). Then:
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/arcscript.git
 cd arcscript
 
-# Build the project
+# Build it (this might take a minute the first time)
 cargo build --release
 
-# Run the demo
+# Try the demo to see it in action
 cargo run
 ```
 
-### Running ArcScript
+### Your First Script
+
+Let's run something simple:
 
 ```bash
-# Run a script file
+# Execute a script file
 cargo run path/to/script.arc
 
-# Start the interactive REPL
+# Or jump into the interactive REPL to experiment
 cargo run repl
 
-# Run built-in demo
+# The default demo is pretty cool too
 cargo run
 ```
 
-## 📖 Language Tour
+## 📖 Learn the Language
 
-### Variables and Types
+### Variables Are Simple
+
+ArcScript keeps types straightforward. Just use `var` and let the language figure it out:
 
 ```arcscript
-var x = 42;              // Integer
-var pi = 3.14159;        // Float
-var name = "Alice";      // String
-var active = true;       // Boolean
-var nothing = nil;       // Nil
+var health = 100;        // Integers for whole numbers
+var speed = 2.5;         // Floats for decimals
+var name = "Warrior";    // Strings for text
+var alive = true;        // Booleans for logic
+var treasure = nil;      // Nil when you need "nothing"
 ```
 
-### Functions
+### Functions Work How You'd Expect
+
+No complicated syntax here—just write what you mean:
 
 ```arcscript
 func greet(name): {
@@ -69,39 +81,46 @@ func add(a, b): {
     return a + b;
 } end
 
-var result = add(5, 3);  // 8
+var result = add(5, 3);  // Result is 8
 ```
 
-### Closures
+### Closures Are Actually Useful
+
+This is where things get interesting. Closures let you create functions that remember their environment:
 
 ```arcscript
-var x = 10;
+var multiplier = 10;
 
-func makeAdder(n): {
-    func inner(val): {
-        return x + n + val;
+func makeScaler(factor): {
+    func scale(value): {
+        return multiplier * factor * value;
     } end
-    return inner;
+    return scale;
 } end
 
-var adder = makeAdder(5);
-println(adder(3));  // 18
+var doubleScale = makeScaler(2);
+println(doubleScale(5));  // Outputs: 100
 ```
 
-### Tables and Objects
+This is perfect for creating custom game logic, like damage calculators that scale with player stats.
+
+### Tables and Objects for Game Data
+
+Tables are your go-to for storing related data:
 
 ```arcscript
-// Table literal
+// Create a player with properties
 var player = {
     name: "Hero",
     hp: 100,
-    level: 5
+    level: 5,
+    gold: 250
 };
 
 println(player.name);     // "Hero"
-println(player["hp"]);    // 100
+println(player["hp"]);    // 100 (both notations work)
 
-// Object declaration
+// Objects let you define reusable templates
 object Enemy: {
     var hp = 50;
     var damage = 10;
@@ -110,182 +129,218 @@ object Enemy: {
         return damage;
     } end
 } end
+
+// Now every enemy starts with these stats
+var enemyDamage = Enemy.attack();
 ```
 
-### Control Flow
+### Control Flow That Makes Sense
+
+ArcScript's control flow reads like plain English:
 
 ```arcscript
-// If-Elif-Else
-if x > 10 then {
-    println("Large");
-} elif x > 5 then {
-    println("Medium");
+// Conditionals with elif for multiple branches
+if health > 80 then {
+    println("Feeling strong!");
+} elif health > 40 then {
+    println("Getting hurt...");
 } else {
-    println("Small");
+    println("Critical condition!");
 } end
 
-// While loop
-var i = 0;
-while i < 5 do {
-    println(i);
-    i += 1;  // Compound assignment
+// While loops for ongoing checks
+var countdown = 5;
+while countdown > 0 do {
+    println("T-minus", countdown);
+    countdown -= 1;  // Yes, we have compound assignments!
 } end
 
-// For loop
+// For loops when you know the range
 for i = 1, 10, 1 do {
-    println(i);
+    println("Wave", i);
 } end
 
-// Loop control
+// Loop control when you need it
 for i = 1, 100, 1 do {
     if i > 5 then {
-        break;
+        break;  // Exit the loop early
+    } end
+    if i % 2 == 0 then {
+        continue;  // Skip even numbers
     } end
     println(i);
 } end
 ```
 
-### Built-in Functions
+### Built-in Functions You'll Actually Use
+
+I included the functions I found myself needing over and over:
 
 ```arcscript
-// Output
-print("Hello");          // Print without newline
-println("World!");       // Print with newline
+// Output to console
+print("HP: ");           // Prints without newline
+println("100/100");      // Adds newline at the end
 
-// Type operations
-type(42);                // "int"
-len("Hello");            // 5
-len({a: 1, b: 2});      // 2
+// Check types and lengths
+type(42);                // Returns "int"
+len("Hello");            // Returns 5
+len({a: 1, b: 2});      // Returns 2 (table entries)
 
-// Type conversions
-int("42");               // 42
-float(10);               // 10.0
-str(42);                 // "42"
+// Convert between types
+int("42");               // String to integer: 42
+float(10);               // Integer to float: 10.0
+str(42);                 // Integer to string: "42"
 
-// Math functions
-abs(-10);                // 10
-min(5, 10);              // 5
-max(5, 10);              // 10
-sqrt(16);                // 4.0
-pow(2, 8);               // 256.0
-floor(3.7);              // 3
-ceil(3.2);               // 4
-round(3.5);              // 4
+// Math operations (super useful for game calculations)
+abs(-10);                // Absolute value: 10
+min(5, 10);              // Smaller value: 5
+max(5, 10);              // Larger value: 10
+sqrt(16);                // Square root: 4.0
+pow(2, 8);               // Power: 256.0
+floor(3.7);              // Round down: 3
+ceil(3.2);               // Round up: 4
+round(3.5);              // Round nearest: 4
 
-// String functions
-substring("Hello", 0, 2);    // "He"
-contains("test", "es");      // true
-toUpper("hello");            // "HELLO"
-toLower("WORLD");            // "world"
+// String manipulation
+substring("Hello", 0, 2);     // Extract: "He"
+contains("test", "es");       // Check if contains: true
+toUpper("hello");             // Uppercase: "HELLO"
+toLower("WORLD");             // Lowercase: "world"
 ```
 
-## 📚 Examples
+## 📚 Real Examples
 
-Check out the `examples/` directory for comprehensive examples:
+I've included a bunch of working examples in the `examples/` directory. Here's what each one shows:
 
-- **[basic.arc](examples/basic.arc)** - Variables, functions, and arithmetic
-- **[control_flow.arc](examples/control_flow.arc)** - Conditionals and loops
-- **[loops.arc](examples/loops.arc)** - For loops with break/continue
-- **[closures.arc](examples/closures.arc)** - Closure capture and nested functions
-- **[tables_objects.arc](examples/tables_objects.arc)** - Tables and object declarations
-- **[builtins.arc](examples/builtins.arc)** - Built-in functions showcase
-- **[math.arc](examples/math.arc)** - Math functions (abs, sqrt, pow, etc.)
-- **[strings.arc](examples/strings.arc)** - String operations (substring, contains, etc.)
-- **[operators.arc](examples/operators.arc)** - Modulo (%) and compound assignments (+=, -=, etc.)
-- **[advanced.arc](examples/advanced.arc)** - Advanced features and patterns
+- **[basic.arc](examples/basic.arc)** - Start here: variables, functions, and basic arithmetic
+- **[control_flow.arc](examples/control_flow.arc)** - If statements, loops, and branching logic
+- **[loops.arc](examples/loops.arc)** - For loops with break and continue
+- **[closures.arc](examples/closures.arc)** - How closures work and why they're useful
+- **[tables_objects.arc](examples/tables_objects.arc)** - Working with data structures
+- **[builtins.arc](examples/builtins.arc)** - Tour of all built-in functions
+- **[math.arc](examples/math.arc)** - Math operations for game calculations
+- **[strings.arc](examples/strings.arc)** - String manipulation techniques
+- **[operators.arc](examples/operators.arc)** - Modulo and compound assignments in action
+- **[advanced.arc](examples/advanced.arc)** - Putting it all together
 
-Run any example with:
+Try them out:
 ```bash
 cargo run examples/basic.arc
 ```
 
-## 🏗️ Architecture
+## 🏗️ How It Works
 
-ArcScript follows a classic interpreter pipeline:
+ArcScript uses a straightforward interpreter architecture that's easy to understand and extend:
 
 ```
-Source Code → Lexer → Tokens → Parser → AST → Interpreter → Execution
+Your Code → Lexer → Tokens → Parser → AST → Interpreter → Results
 ```
 
-- **Lexer** ([src/lexer.rs](src/lexer.rs)): Tokenization with support for keywords, operators, literals, and comments
-- **Parser** ([src/parser.rs](src/parser.rs)): Recursive descent parser with error recovery
-- **AST** ([src/ast.rs](src/ast.rs)): Clean abstract syntax tree representation
-- **Interpreter** ([src/interpreter.rs](src/interpreter.rs)): Tree-walking interpreter with environment-based scoping
+Each component does one job well:
+
+- **Lexer** ([src/lexer.rs](src/lexer.rs)): Breaks your code into tokens (keywords, numbers, operators, etc.)
+- **Parser** ([src/parser.rs](src/parser.rs)): Builds a syntax tree from tokens, with error recovery if something's wrong
+- **AST** ([src/ast.rs](src/ast.rs)): Clean representation of your program structure
+- **Interpreter** ([src/interpreter.rs](src/interpreter.rs)): Walks the tree and executes your code
+
+No magic, no hidden complexity—just a clean pipeline that's easy to debug and extend.
 
 ## 🧪 Testing
+
+The test suite covers all major features:
 
 ```bash
 # Run all tests
 cargo test
 
-# Run tests with output
+# See detailed output
 cargo test -- --nocapture
 
-# Run specific test
+# Run a specific test
 cargo test test_closures
 ```
 
-## 🛣️ Roadmap
+## 🛣️ What's Next
 
-- [x] Core language features (variables, functions, control flow)
-- [x] **For loops** with customizable step
-- [x] **Break/Continue** for loop control
-- [x] **Modulo operator** (%)
-- [x] **Compound assignments** (+=, -=, *=, /=)
-- [x] Closures with lexical scoping
+Here's what's already done and what's coming:
+
+**Completed:**
+- [x] Core language (variables, functions, control flow)
+- [x] For loops with customizable step values
+- [x] Break and continue statements
+- [x] Modulo operator (%) for remainders
+- [x] Compound assignments (+=, -=, *=, /=)
+- [x] Closures with proper lexical scoping
 - [x] Tables and object declarations
-- [x] **Math functions** (abs, min, max, sqrt, pow, floor, ceil, round)
-- [x] **String functions** (substring, contains, toUpper, toLower)
+- [x] Complete math library (abs, min, max, sqrt, pow, floor, ceil, round)
+- [x] String manipulation (substring, contains, toUpper, toLower)
 - [x] Standard library (print, type, len, conversions)
 - [x] REPL and file execution
 - [x] Error handling with line numbers
-- [ ] Event system for game lifecycle hooks
-- [ ] Bytecode VM for improved performance
-- [ ] Game-specific API (vectors, input, timing)
-- [ ] LSP server for IDE support
+
+**On the Roadmap:**
+- [ ] Event system for game lifecycle (update, collision, etc.)
+- [ ] Bytecode VM for better performance
+- [ ] Game-specific APIs (vectors, timers, input handling)
+- [ ] Language server for IDE support
 - [ ] Debugger integration
-- [ ] Module system
+- [ ] Module system for organizing larger projects
 
-## 📝 Recent Updates (January 2026)
+## 📝 Recent Changes
 
-Latest improvements include:
-- ✅ **For Loops**: `for var = start, end, step do { ... } end`
-- ✅ **Loop Control**: `break` and `continue` statements
-- ✅ **Math Functions**: `abs`, `min`, `max`, `floor`, `ceil`, `round`, `sqrt`, `pow`
-- ✅ **String Functions**: `substring`, `contains`, `toUpper`, `toLower`
-- ✅ **Built-in Functions**: `print`, `println`, `type`, `len`, `str`, `int`, `float`
-- ✅ **File Execution**: Run ArcScript files directly from the command line
-- ✅ **Enhanced Errors**: Runtime error messages now include line numbers
-- ✅ **New Examples**: 9 example files showcasing all features
-- ✅ **Comprehensive Tests**: 10+ unit tests covering all language features
-- ✅ **Professional Setup**: MIT License, CI/CD with GitHub Actions
+Just wrapped up some major improvements (January 2026):
 
-## 🤝 Contributing
+**New Language Features:**
+- ✅ For loops that let you control start, end, and step: `for i = 0, 100, 5 do`
+- ✅ Break and continue for fine control over loops
+- ✅ Modulo operator (%) for things like even/odd checks
+- ✅ Compound assignments (+=, -=, *=, /=) to write cleaner code
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+**New Built-ins:**
+- ✅ Math functions: abs, min, max, floor, ceil, round, sqrt, pow
+- ✅ String functions: substring, contains, toUpper, toLower
+- ✅ Type operations: print, println, type, len, str, int, float
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Better Developer Experience:**
+- ✅ Run scripts directly from files
+- ✅ Error messages now show line numbers
+- ✅ 10 example files covering every feature
+- ✅ Comprehensive test suite
+- ✅ Professional setup with CI/CD
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+## 🤝 Want to Contribute?
+
+I'd love to see what you build with this! Contributions are absolutely welcome.
+
+Here's how to get started:
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/cool-new-thing`
+3. Make your changes and test them
+4. Commit with a clear message: `git commit -m 'Add cool new thing'`
+5. Push: `git push origin feature/cool-new-thing`
+6. Open a pull request
+
+Check out [CONTRIBUTING.md](CONTRIBUTING.md) for more detailed guidelines on code style, testing, and what makes a good PR.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License—use it for whatever you want. See [LICENSE](LICENSE) for the legal details.
 
 ## 📖 Documentation
 
-For detailed language reference, see [docs/ArcScript_Guide.txt](docs/ArcScript_Guide.txt).
+Want to dive deeper? The complete language reference is in [docs/ArcScript_Guide.txt](docs/ArcScript_Guide.txt).
 
-## 🙏 Acknowledgments
+## 🙏 Credits
 
-- Inspired by Lua, JavaScript, and Python's simplicity
-- Built with Rust for performance and safety
-- Designed for game developers and interactive applications
+This project draws inspiration from some of my favorite languages:
+
+- **Lua** for showing that simplicity is powerful
+- **Python** for proving that readability matters
+- **JavaScript** for making closures accessible
+
+Built with **Rust** because when you're running game scripts at 60fps, performance and safety aren't optional.
 
 ---
 
-**Made with ❤️ for game developers**
+**Built for game developers who want to focus on creating, not debugging.** ❤️

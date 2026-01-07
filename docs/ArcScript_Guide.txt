@@ -1,382 +1,906 @@
-ArcScript Language Guide (MVP)
-===============================
+===============================================================================
+                        ArcScript Language Guide
+===============================================================================
 
-1. What is ArcScript?
----------------------
-ArcScript is a domain-specific scripting language designed for game logic. It is intended to be simple, readable, and friendly to game designers and scripters, while being efficient enough to run as runtime scripting inside a game engine.
+Welcome to ArcScript! This guide will walk you through everything you need to
+know to start scripting your game logic. Whether you're a seasoned programmer
+or just getting started, you'll find ArcScript straightforward and powerful.
 
-At the current MVP level in this repository, ArcScript provides:
-- A comprehensive syntax for variables, expressions, conditionals, loops, functions, closures, tables, and objects.
-- A Rust-based implementation with a lexer, parser, AST, and a complete interpreter.
-- Structured error handling for both parse errors and runtime errors.
-- A REPL for interactive development.
-- An execution pipeline you can embed or extend for game scripting.
 
-ArcScript now supports most core features. Remaining work includes events, game-specific APIs, bytecode VM optimization, and advanced tooling (LSP, debugger).
+1. What Is ArcScript, Really?
+------------------------------
 
-2. Overall Architecture
------------------------
-The current implementation follows a classic language pipeline:
+ArcScript is a scripting language I built specifically for game development.
+If you've ever felt like existing scripting languages were either too complex
+or too limited for game logic, ArcScript aims to hit that sweet spot.
 
-    source text -> Lexer -> Tokens -> Parser -> AST -> Interpreter -> Runtime Effects
+The core philosophy is simple: game developers should spend their time creating
+gameplay, not wrestling with syntax or tracking down obscure bugs. That's why
+ArcScript is designed to be:
 
-- Lexer (`src/lexer.rs`)
-  Converts the raw source string into a stream of tokens (identifiers, keywords, numbers, strings, operators, delimiters, EOF).
+  • Readable - Code should look like what it does
+  • Reliable - Built on Rust, so you won't see random crashes
+  • Fast - Performance matters when you're running scripts every frame
+  • Practical - Every feature exists because games actually need it
 
-- Parser (`src/parser.rs`)
-  Consumes tokens and builds an Abstract Syntax Tree (AST) representing the structure of the program.
+What you get in this version:
 
-- AST (`src/ast.rs`)
-  Defines the core node types for expressions, statements, functions, and (future) objects/events.
+  ✓ Complete syntax for variables, expressions, functions, and control flow
+  ✓ First-class functions with proper closure support
+  ✓ Tables and objects for managing game data
+  ✓ A full set of math and string operations
+  ✓ Helpful error messages that point you to the problem
+  ✓ Interactive REPL for testing ideas quickly
+  ✓ A solid foundation you can extend for your specific needs
 
-- Interpreter (`src/interpreter.rs`)
-  Walks the AST and executes it using a simple runtime environment that holds variables and values.
+What's still coming:
 
-- Entry point (`src/main.rs`)
-  Demonstrates a small, hard-coded ArcScript snippet that is lexed, parsed, and executed.
+  ⧗ Event system for game lifecycle hooks (update, collision, etc.)
+  ⧗ Game-specific APIs (vectors, input, spawning)
+  ⧗ Bytecode VM for even better performance
+  ⧗ Developer tools (LSP, debugger, IDE integration)
 
-This MVP focuses on clarity and correctness first, then will grow toward a bytecode VM and game-engine integration.
 
-3. Current Language Features (MVP)
-----------------------------------
-This section describes what the language currently supports in this repository.
+2. How ArcScript Works Under the Hood
+--------------------------------------
 
-3.1 Basic Types
----------------
-The runtime currently supports the following value types:
+Understanding the basics of how your code gets executed will help you write
+better scripts. Don't worry—it's not complicated.
 
-- Int    (64-bit signed integers)
-- Float  (64-bit floating point)
-- Bool   (true/false)
-- String (UTF-8 strings)
-- Table  (key-value mappings, implemented as HashMap<String, Value>)
-- Function (first-class functions with closure capture)
-- Nil    (represents the absence of a value)
+The Pipeline:
 
-These are implemented in the interpreter as:
+    Your Code → Lexer → Tokens → Parser → AST → Interpreter → Execution
 
-    enum Value {
-        Int(i64),
-        Float(f64),
-        Bool(bool),
-        String(String),
-        Function { decl: FuncDecl, closure: Option<Box<Environment>> },
-        Table(HashMap<String, Value>),
-        Nil,
-    }
+Let me break that down in plain English:
 
-3.2 Variables
--------------
-Variables are declared with the `var` keyword:
+1. LEXER (src/lexer.rs)
+   Takes your text and breaks it into meaningful pieces called tokens.
+   For example, "var x = 10;" becomes:
+   [VAR] [IDENTIFIER:x] [EQUALS] [INTEGER:10] [SEMICOLON]
 
-    var x = 42;
-    var message = "Hello";
+2. PARSER (src/parser.rs)
+   Takes those tokens and builds a tree structure that represents what
+   your code means. This is called an Abstract Syntax Tree (AST).
+   It knows that "var x = 10;" means "create a variable named x and
+   give it the value 10."
 
-A (currently ignored) type annotation can be written after a colon:
+3. AST (src/ast.rs)
+   The actual tree structure. It's a clean representation of your program
+   that the interpreter can easily work with.
 
-    var hp: int = 100;
+4. INTERPRETER (src/interpreter.rs)
+   Walks through the tree and actually executes your code. It keeps track
+   of variables, calls functions, and makes everything happen.
 
-In the MVP interpreter, type annotations are parsed but not enforced.
+This is a "tree-walking interpreter," which means it directly executes the
+AST without compiling to bytecode first. It's simpler and easier to debug,
+though not quite as fast as a bytecode VM (that's coming later).
 
-3.3 Expressions
----------------
-Supported expression forms include:
 
-- Literals:
+3. The Language: Variables and Types
+------------------------------------
 
-    123
-    3.14
-    true
-    false
-    nil
-    "hello world"
+ArcScript keeps types simple. You don't need to declare types explicitly—
+the language figures it out from what you assign.
 
-- Identifiers:
+Available Types:
 
-    x
-    hp
+  • Int     - Whole numbers (64-bit): 42, -17, 1000
+  • Float   - Decimals (64-bit): 3.14, -0.5, 2.0
+  • Bool    - Logic values: true, false
+  • String  - Text in quotes: "Hello", "Player"
+  • Table   - Key-value collections: {hp: 100, name: "Hero"}
+  • Function - First-class callable functions
+  • Nil     - Represents "nothing" or "no value"
 
-- Unary operators:
+Declaring Variables:
 
-    -x
-    not x
+  var health = 100;           // Integer
+  var speed = 2.5;            // Float  
+  var name = "Warrior";       // String
+  var alive = true;           // Boolean
+  var inventory = nil;        // Nil (empty for now)
 
-- Binary operators:
+Type annotations are optional and currently not enforced:
 
-    x + y
-    x - y
-    x * y
-    x / y
-    x == y
-    x != y
-    x < y
-    x <= y
-    x > y
-    x >= y
-    x and y
-    x or y
+  var hp: int = 100;          // You can write this, but it won't error
+                               // if you later assign a string
 
-The interpreter implements numeric arithmetic and comparisons for Int/Float, boolean logic for Bool, and string concatenation for String + String.
+That might change in future versions, but for now, types are dynamic.
 
-3.4 Statements
---------------
-Supported statements in the MVP are:
+4. Expressions: Doing Math and Logic
+------------------------------------
 
-- Variable declaration:
+Expressions are how you calculate values and make decisions. They're the
+building blocks of your game logic.
 
-    var x = 1 + 2 * 3;
+Literals (Raw Values):
 
-- Expression statement:
+  42                      // Integer literal
+  3.14159                 // Float literal
+  true                    // Boolean literal
+  false                   // Boolean literal
+  nil                     // Nil literal
+  "Hello, world!"         // String literal
 
-    x + 1;
+Variables:
 
-- If / Elif / Else:
+  health                  // Look up the value of 'health'
+  player_name             // Variable names can use underscores
 
-    if x > 0 then {
-        var y = x + 1;
-    } elif x == 0 then {
-        var y = 0;
-    } else {
-        var y = -1;
-    } end
+Unary Operators (Single Value Operations):
 
-- While loop:
+  -x                      // Negate a number
+  not active              // Logical NOT
+  !active                 // Alternative NOT syntax
 
-    while x < 10 do {
-        x = x + 1;
-    } end
+Binary Operators (Two Value Operations):
 
-- Return statement (inside functions; functions are not executed yet in the MVP):
+  Arithmetic:
+    x + y                 // Addition
+    x - y                 // Subtraction
+    x * y                 // Multiplication
+    x / y                 // Division
+    x % y                 // Modulo (remainder)
 
-    return x;
+  Comparison:
+    x == y                // Equal to
+    x != y                // Not equal to
+    x < y                 // Less than
+    x <= y                // Less than or equal
+    x > y                 // Greater than
+    x >= y                // Greater than or equal
 
-Blocks are currently written with braces `{ ... }`. The grammar also uses keywords like `then`, `do`, and `end` to mark the structure of if/while and functions.
+  Logical:
+    x and y               // Both must be true
+    x or y                // At least one must be true
 
-3.5 Functions (Callable)
-------------------------
-Functions can be declared and are fully callable in the interpreter with closure support. A simple function declaration looks like this:
+Assignment Operators (Shortcuts):
 
-    func add(a, b): {
-        return a + b;
-    } end
+  x = 10                  // Basic assignment
+  x += 5                  // Same as: x = x + 5
+  x -= 3                  // Same as: x = x - 3
+  x *= 2                  // Same as: x = x * 2
+  x /= 4                  // Same as: x = x / 4
 
-You can call it like this:
+Type Mixing Rules:
 
-    var result = add(2, 3);
+  • Int + Int → Int
+  • Float + Float → Float
+  • Int + Float → Float (integer gets promoted)
+  • String + String → String (concatenation)
+  • Anything else causes a runtime error
 
-At runtime, the interpreter:
-- Stores the function under its name in the environment, capturing the current environment as a closure.
-- When it sees a call expression `add(2, 3)`, it:
-  - Creates a new environment (scope) for the call that chains to the captured closure environment.
-  - Binds parameters (`a`, `b`) to the argument values (`2`, `3`).
-  - Executes the function body.
-  - Returns the value from the first `return` reached (or `nil` if no return is executed).
+Truthiness (What Counts as True):
 
-Functions are first-class values and support closures: they can capture and reference variables from their defining scope.
+  • false and nil are falsey
+  • Everything else is truthy (including 0 and empty strings!)
 
-Example of a closure:
 
-    var x = 10;
-    func makeAdder(): {
-        func inner(n): {
-            return x + n;
+5. Statements: Making Things Happen
+-----------------------------------
+
+Statements are the actions your code performs. Each statement does something:
+declares a variable, makes a decision, loops, or returns a value.
+
+Variable Declaration:
+
+  var damage = 10 + strength * 2;
+
+Expression Statement (Evaluate and Discard):
+
+  calculateScore();       // Call function, ignore return value
+  x + 1;                  // Valid but useless—result is discarded
+
+If/Elif/Else (Conditional Branching):
+
+  if health > 80 then {
+      println("Feeling strong!");
+  } elif health > 40 then {
+      println("Getting weak...");
+  } else {
+      println("Critical!");
+  } end
+
+  Notes:
+  - You can have as many 'elif' branches as you need
+  - 'else' is optional
+  - Always end with 'end'
+
+While Loops (Repeat While True):
+
+  var countdown = 10;
+  while countdown > 0 do {
+      println(countdown);
+      countdown -= 1;
+  } end
+
+For Loops (Count Through a Range):
+
+  for i = 1, 10, 1 do {
+      println("Wave", i);
+  } end
+
+  Syntax: for variable = start, end, step do { ... } end
+  
+  - 'start' is where the counter begins
+  - 'end' is where it stops (inclusive)
+  - 'step' is how much to add each iteration
+  
+  Examples:
+    for i = 0, 100, 5 do     // Count by 5s: 0, 5, 10, ...
+    for i = 10, 1, -1 do     // Count backwards: 10, 9, 8, ...
+
+Loop Control:
+
+  break;                  // Exit the loop immediately
+  continue;               // Skip to next iteration
+
+  Example:
+    for i = 1, 100, 1 do {
+        if i % 2 == 0 then {
+            continue;     // Skip even numbers
         } end
-        return inner;
+        if i > 20 then {
+            break;        // Stop after 20
+        } end
+        println(i);
     } end
-    var adder = makeAdder();
-    var result = adder(5);  // result = 15
 
-In the AST, functions correspond to `FuncDecl` nodes with:
-- A name (e.g., `add`)
-- A list of parameters
-- A body statement (typically a Block)
+Return Statement (Exit Function):
 
-3.6 Tables
-----------
-Tables are key-value data structures (like dictionaries or objects in other languages). You can create them with table literals:
+  func add(a, b): {
+      return a + b;
+  } end
 
-    var player = {
-        name: "Hero",
-        hp: 100,
-        level: 5
+  • Only valid inside functions
+  • Immediately exits the function with a value
+  • If no return is hit, function returns nil
+
+
+6. Functions: Reusable Logic
+-----------------------------
+
+Functions are where ArcScript really shines. They're first-class values,
+meaning you can pass them around, return them, and nest them.
+
+Basic Function Declaration:
+
+  func greet(name): {
+      println("Hello,", name);
+  } end
+
+  greet("Player");        // Call it: "Hello, Player"
+
+Functions with Return Values:
+
+  func add(a, b): {
+      return a + b;
+  } end
+
+  var sum = add(10, 5);   // sum = 15
+
+Multiple Parameters:
+
+  func calculateDamage(base, multiplier, resistance): {
+      var total = base * multiplier;
+      return total - resistance;
+  } end
+
+  var damage = calculateDamage(50, 1.5, 10);  // 65
+
+Functions Are Values:
+
+  func makeGreeting(name): {
+      return "Hello, " + name;
+  } end
+
+  var greeting = makeGreeting;    // Store function in variable
+  println(greeting("World"));     // Call it: "Hello, World"
+
+Closures (Functions That Remember):
+
+This is one of the most powerful features. Functions can "capture" variables
+from their surrounding scope and remember them even after that scope ends.
+
+  var multiplier = 10;
+
+  func makeMultiplier(factor): {
+      func multiply(value): {
+          return multiplier * factor * value;
+      } end
+      return multiply;
+  } end
+
+  var triple = makeMultiplier(3);
+  println(triple(5));     // 10 * 3 * 5 = 150
+
+Why is this useful? Perfect for creating custom behaviors:
+
+  func makeEnemyAI(aggressionLevel): {
+      func chooseAction(playerDistance): {
+          if playerDistance < aggressionLevel then {
+              return "attack";
+          } else {
+              return "patrol";
+          } end
+      } end
+      return chooseAction;
+  } end
+
+  var aggressiveAI = makeEnemyAI(10);
+  var passiveAI = makeEnemyAI(3);
+
+  println(aggressiveAI(5));   // "attack" (5 < 10)
+  println(passiveAI(5));      // "patrol" (5 >= 3)
+
+Each AI function remembers its own aggression level!
+
+
+
+7. Tables: Organizing Your Data
+--------------------------------
+
+Tables are your go-to data structure for anything with multiple related values.
+Think player stats, item properties, game state—anything that needs key-value
+storage.
+
+Creating Tables:
+
+  var player = {
+      name: "Hero",
+      hp: 100,
+      maxHp: 100,
+      level: 5,
+      gold: 250
+  };
+
+Accessing Values:
+
+  println(player.name);       // Dot notation: "Hero"
+  println(player["hp"]);      // Bracket notation: 100
+
+  Both work, but dot notation is cleaner when you know the key name.
+
+Modifying Values:
+
+  player.hp = 80;             // Take damage
+  player["gold"] += 50;       // Find treasure
+
+Nested Tables:
+
+  var inventory = {
+      weapons: {
+          sword: {damage: 50, durability: 100},
+          bow: {damage: 30, durability: 80}
+      },
+      potions: {
+          health: 5,
+          mana: 3
+      }
+  };
+
+  var swordDamage = inventory.weapons.sword.damage;  // 50
+
+Empty Tables:
+
+  var emptyInventory = {};
+
+Tables as Collections:
+
+  var enemies = {
+      goblin: {hp: 30, damage: 5},
+      orc: {hp: 80, damage: 15},
+      dragon: {hp: 500, damage: 100}
+  };
+
+  println(enemies.goblin.hp);      // 30
+  println(enemies["dragon"].damage);  // 100
+
+Implementation Note:
+
+  Tables are backed by Rust's HashMap<String, Value>, so lookups are fast
+  and keys are always strings. You can store any value type as table values,
+  including other tables and functions.
+
+
+8. Objects: Reusable Templates
+-------------------------------
+
+Objects let you define templates for game entities. Think of them as
+blueprints that you can reference throughout your game.
+
+Basic Object Declaration:
+
+  object Enemy: {
+      var hp = 50;
+      var damage = 10;
+      
+      func attack(): {
+          return damage;
+      } end
+  } end
+
+Using Objects:
+
+  var enemyHp = Enemy.hp;            // 50
+  var attackDamage = Enemy.attack();  // 10
+
+Objects with Complex Logic:
+
+  object Player: {
+      var hp = 100;
+      var maxHp = 100;
+      var mana = 50;
+      
+      func takeDamage(amount): {
+          hp = hp - amount;
+          if hp < 0 then {
+              hp = 0;
+          } end
+          return hp;
+      } end
+      
+      func heal(amount): {
+          hp = hp + amount;
+          if hp > maxHp then {
+              hp = maxHp;
+          } end
+          return hp;
+      } end
+  } end
+
+  Player.takeDamage(30);  // hp is now 70
+  Player.heal(20);        // hp is now 90
+
+Important Notes:
+
+  • Objects currently act as shared templates (like static classes)
+  • All accesses reference the same object instance
+  • For unique instances, you'll want to create tables instead
+  • Future versions will support proper instancing
+
+Example: Using Tables for Instances
+
+  func createEnemy(enemyType): {
+      if enemyType == "goblin" then {
+          return {hp: 30, damage: 5};
+      } elif enemyType == "orc" then {
+          return {hp: 80, damage: 15};
+      } end
+      return {hp: 1, damage: 1};
+  } end
+
+  var enemy1 = createEnemy("goblin");
+  var enemy2 = createEnemy("orc");
+
+  enemy1.hp = 20;  // Only affects enemy1
+  enemy2.hp = 60;  // Only affects enemy2
+
+
+9. Built-in Functions: Your Toolkit
+-----------------------------------
+
+ArcScript comes with a solid set of built-in functions you'll use constantly.
+
+Output Functions:
+
+  print(value);           // Print without newline
+  println(value);         // Print with newline
+
+  Examples:
+    print("HP: ");
+    println(player.hp);   // Output: HP: 100
+
+Type Operations:
+
+  type(value);            // Returns type as string
+  len(value);             // Returns length
+
+  Examples:
+    type(42);             // "int"
+    type(3.14);           // "float"
+    type("text");         // "string"
+    type(true);           // "bool"
+    type(nil);            // "nil"
+    
+    len("Hello");         // 5
+    len({a: 1, b: 2});   // 2 (number of table entries)
+
+Type Conversions:
+
+  str(value);             // Convert to string
+  int(value);             // Convert to integer
+  float(value);           // Convert to float
+
+  Examples:
+    str(42);              // "42"
+    int("100");           // 100
+    int(3.7);             // 3 (truncates)
+    float(10);            // 10.0
+    float("3.14");        // 3.14
+
+Math Functions:
+
+  abs(x);                 // Absolute value
+  min(a, b);              // Smaller of two values
+  max(a, b);              // Larger of two values
+  sqrt(x);                // Square root
+  pow(base, exp);         // Exponentiation
+  floor(x);               // Round down
+  ceil(x);                // Round up
+  round(x);               // Round to nearest
+
+  Examples:
+    abs(-10);             // 10
+    min(5, 10);           // 5
+    max(5, 10);           // 10
+    sqrt(16);             // 4.0
+    pow(2, 8);            // 256.0
+    floor(3.7);           // 3
+    ceil(3.2);            // 4
+    round(3.5);           // 4
+
+  Perfect for game calculations:
+    var distance = sqrt(pow(dx, 2) + pow(dy, 2));
+    var damage = floor(baseDamage * multiplier);
+
+String Functions:
+
+  substring(str, start, length);  // Extract substring
+  contains(str, substr);          // Check if contains
+  toUpper(str);                   // Convert to uppercase
+  toLower(str);                   // Convert to lowercase
+
+  Examples:
+    substring("Hello World", 0, 5);   // "Hello"
+    substring("Player_1", 7, 1);      // "1"
+    contains("Player", "lay");        // true
+    contains("Enemy", "xyz");         // false
+    toUpper("hello");                 // "HELLO"
+    toLower("WORLD");                 // "world"
+
+  Useful for parsing and formatting:
+    var playerNum = substring(playerName, 7, 1);
+    var command = toLower(userInput);
+
+
+10. How the Interpreter Executes Your Code
+------------------------------------------
+
+Understanding how your code runs will help you write better scripts and
+debug issues faster.
+
+The Environment:
+
+  The interpreter maintains a chain of "environments" (scopes) that map
+  variable names to values. When you declare a variable, it goes into the
+  current environment. When you reference a variable, the interpreter looks
+  it up starting from the current environment and moving up the chain.
+
+  This is how closures work: inner functions remember their outer scope
+  by capturing a reference to their environment.
+
+Evaluating a Program:
+
+  The interpreter starts at the top of your code and works down, executing
+  each statement in order. Simple as that.
+
+  • Variable declarations evaluate the expression and store the result
+  • Function declarations store the function for later use
+  • Object declarations create a table with the object's members
+  • Expressions get evaluated and (usually) discarded
+
+Evaluating Statements:
+
+  VarDecl:
+    var x = 10 + 5;
+    
+    Steps:
+    1. Evaluate the expression (10 + 5 = 15)
+    2. Store the result in the current environment under name "x"
+
+  If Statement:
+    if health < 20 then { ... } end
+    
+    Steps:
+    1. Evaluate the condition (health < 20)
+    2. If truthy, execute the then block
+    3. Otherwise, try elif conditions or execute else block
+
+  While Loop:
+    while count < 10 do { ... } end
+    
+    Steps:
+    1. Evaluate condition
+    2. If truthy, execute body and repeat
+    3. If falsey, skip body and continue
+
+  For Loop:
+    for i = 1, 10, 1 do { ... } end
+    
+    Steps:
+    1. Evaluate start, end, and step expressions
+    2. Create loop variable with start value
+    3. While loop variable hasn't passed end, execute body
+    4. Add step to loop variable after each iteration
+
+  Return:
+    return x + 5;
+    
+    Steps:
+    1. Evaluate the expression
+    2. Immediately exit the function with that value
+
+  Break/Continue:
+    break;      // Exit loop immediately
+    continue;   // Skip to next iteration
+    
+    These only work inside loops and immediately alter control flow.
+
+Evaluating Expressions:
+
+  Expressions always produce a value.
+
+  Literals:
+    42 → Value::Int(42)
+    "text" → Value::String("text")
+
+  Variables:
+    health → Look up "health" in environment chain
+
+  Unary Operations:
+    -x → Evaluate x, negate it
+    not x → Evaluate x, apply logical NOT
+
+  Binary Operations:
+    x + y → Evaluate x, evaluate y, add them
+    x > y → Evaluate both, compare them
+    x and y → Evaluate x, if falsey return it, else evaluate and return y
+
+  Function Calls:
+    add(5, 3)
+    
+    Steps:
+    1. Look up "add" in environment (should be a function)
+    2. Evaluate each argument (5, 3)
+    3. Create new environment chaining to function's closure
+    4. Bind parameters to argument values
+    5. Execute function body in new environment
+    6. Return the result (or nil if no return)
+
+Truthiness Rules:
+
+  These values are falsey:
+  • false (boolean)
+  • nil
+
+  Everything else is truthy:
+  • true
+  • Any number (including 0!)
+  • Any string (including "")
+  • Any table
+  • Any function
+
+
+11. Error Handling
+-----------------
+
+ArcScript tries to give you helpful errors when things go wrong.
+
+Parse Errors:
+
+  If your syntax is wrong, the parser will tell you exactly where:
+
+    Error at line 5, column 12: Expected 'end' but found 'EOF'
+
+  The parser includes error recovery, so it'll try to continue parsing
+  and report multiple errors when possible.
+
+Runtime Errors:
+
+  If something goes wrong during execution, you'll get a message:
+
+    Runtime error: division by zero
+    Runtime error: undefined variable 'player'
+    Runtime error: cannot add int and string
+
+  Many runtime errors include line numbers to help you track down the issue.
+
+Common Errors:
+
+  • "undefined variable" - You referenced a variable that doesn't exist
+  • "division by zero" - You tried to divide or modulo by 0
+  • "not a function" - You tried to call something that isn't callable
+  • "wrong number of arguments" - Function call with wrong argument count
+  • "cannot add X and Y" - Type mismatch in binary operation
+
+
+12. Running Your Code
+--------------------
+
+You've got three ways to run ArcScript code:
+
+1. Execute a Script File:
+
+     cargo run path/to/your_script.arc
+
+   This runs the script and shows you the output.
+
+2. Interactive REPL:
+
+     cargo run repl
+
+   Type code line by line and see immediate results. Great for testing
+   ideas or debugging logic. Type 'exit' to quit.
+
+3. Demo Mode:
+
+     cargo run
+
+   Runs the built-in demo from src/main.rs. Good for seeing ArcScript
+   in action if you're just starting out.
+
+Example Session:
+
+  $ cargo run examples/basic.arc
+     Compiling arcscript v1.0.0
+      Finished release [optimized] target(s) in 2.1s
+       Running `target/release/arcscript examples/basic.arc`
+  
+  Result: 15
+  Player health: 100
+
+
+13. What's Next?
+---------------
+
+ArcScript v1.0.0 is feature-complete for basic game scripting, but there's
+more coming:
+
+Planned Features:
+
+  • Event System
+    Define event handlers like "on update(dt)" and "on collision(other)"
+    that your game engine can call automatically.
+
+  • Bytecode VM
+    Currently we interpret the AST directly. A bytecode VM will be much
+    faster for games running scripts every frame.
+
+  • Game-Specific APIs
+    Built-in types for vectors, colors, and common game operations like
+    spawning entities and handling input.
+
+  • Language Server (LSP)
+    IDE integration with autocomplete, go-to-definition, and inline errors.
+
+  • Debugger Support
+    Set breakpoints, step through code, inspect variables at runtime.
+
+  • Module System
+    Split your scripts into reusable modules and import them where needed.
+
+Contributing:
+
+  If you want to help build any of these features, check out CONTRIBUTING.md
+  in the repository. Pull requests are welcome!
+
+
+14. Tips and Best Practices
+---------------------------
+
+Here are some things I've learned while building games with ArcScript:
+
+Keep Functions Small:
+
+  Instead of one giant function, break logic into smaller pieces.
+  It's easier to test and reuse.
+
+  Bad:
+    func updatePlayer(): {
+        // 200 lines of movement, combat, inventory, etc.
+    } end
+
+  Good:
+    func updateMovement(): { ... } end
+    func updateCombat(): { ... } end
+    func updateInventory(): { ... } end
+
+Use Tables for State:
+
+  Tables are perfect for game state that changes over time.
+
+    var gameState = {
+        level: 1,
+        score: 0,
+        lives: 3,
+        isPaused: false
     };
 
-Access members with dot notation or index notation:
+Closures for Behaviors:
 
-    var name = player.name;
-    var hp = player["hp"];
+  Use closures to create AI behaviors with custom parameters.
 
-Tables are implemented as `HashMap<String, Value>` in the interpreter.
-
-3.7 Objects (Prototype Declarations)
-------------------------------------
-The grammar and runtime now support `object` declarations for defining game entity prototypes:
-
-    object Player: {
-        var x = 0;
-        var hp = 100;
-
-        func heal(amount): {
-            hp = hp + amount;
+    func makePatrol(waypoints): {
+        var currentWaypoint = 0;
+        func getNextPosition(): {
+            var pos = waypoints[currentWaypoint];
+            currentWaypoint = (currentWaypoint + 1) % len(waypoints);
+            return pos;
         } end
+        return getNextPosition;
     } end
 
-At runtime:
-- The interpreter creates a Table with the object's fields and methods.
-- The object is stored in the environment by name.
-- You can access its members: `Player.hp`, `Player.heal(10)`
+Name Things Clearly:
 
-3.8 Events (Planned)
--------------------
-The grammar and AST include placeholders for `on` events, intended for game lifecycle hooks:
+  Code is read more than it's written. Use descriptive names.
 
-    object Player: {
-        on update(dt): {
-            x = x + 1;
-        } end
-    } end
+  Bad: var hp = 100;
+  Good: var playerHealth = 100;
 
-At the current stage:
-- The parser can parse event declarations.
-- The interpreter does not yet execute them or provide an event dispatch system.
+  Bad: func calc(x, y): { return x * y + 5; } end
+  Good: func calculateDamage(baseDamage, multiplier): { ... } end
 
-Later versions will introduce:
-- Event dispatch (e.g., `on start`, `on update(dt)`, `on destroy`).
-- Script modules and per-entity script instances.
+Test in the REPL:
 
-4. How the Interpreter Works (MVP)
-----------------------------------
-The core runtime is implemented in `src/interpreter.rs`.
+  Before putting complex logic in your game, test it in the REPL:
 
-4.1 Environment
-----------------
-The interpreter keeps a simple environment mapping variable names to values:
+    $ cargo run repl
+    > var damage = 50;
+    > var resistance = 10;
+    > var finalDamage = max(0, damage - resistance);
+    > println(finalDamage);
+    40
 
-    struct Environment {
-        values: HashMap<String, Value>,
-    }
 
-Currently, there is:
-- Nested scoped environments: blocks and function calls create child environments that chain to their parent.
-- Lexical scoping with shadowing is supported.
-- Functions capture their defining environment (closures), allowing access to outer variables even after the outer scope exits.
+15. Appendix: Complete Syntax Reference
+---------------------------------------
 
-4.2 Evaluating a Program
-------------------------
-The top-level entry is:
+Keywords:
+  var, func, object, if, then, elif, else, end, while, do, for,
+  return, break, continue, true, false, nil, and, or, not, on
 
-    fn eval_program(&mut self, program: &Program)
+Operators:
+  Arithmetic: + - * / %
+  Comparison: == != < <= > >=
+  Logical: and or not !
+  Assignment: = += -= *= /=
+  Member: . []
+  Call: ()
 
-This simply walks the list of top-level statements and evaluates them in order.
+Types:
+  Int, Float, Bool, String, Table, Function, Nil
 
-4.3 Evaluating Statements
--------------------------
-The interpreter handles statements such as:
+Control Flow:
+  if EXPR then BLOCK [elif EXPR then BLOCK]* [else BLOCK] end
+  while EXPR do BLOCK end
+  for VAR = START, END, STEP do BLOCK end
+  break;
+  continue;
+  return [EXPR];
 
-- `VarDecl`:
-  - Evaluate the initializer expression.
-  - Bind the result to the given name in the environment.
+Functions:
+  func NAME(PARAMS): BLOCK end
 
-- `Expr` statement:
-  - Evaluate the expression and ignore its result.
+Objects:
+  object NAME: MEMBERS end
 
-- `If`:
-  - Evaluate the condition as a Value.
-  - Apply truthiness rules (non-nil, non-false is true).
-  - Execute either the `then` block, one of the `elif` blocks, or the `else` block.
+Tables:
+  { KEY: VALUE, ... }
 
-- `While`:
-  - While the condition is truthy, execute the body block.
+Comments:
+  // Single-line comment
+  /* Multi-line comment */
 
-- `Return`:
-  - Produces a Value; function calls now propagate return values back to the caller.
 
-- `FuncDecl`, `ObjectDecl`:
-  - Parsed and functions are executable in the interpreter; objects are still not executed at runtime in the MVP.
+===============================================================================
 
-4.4 Evaluating Expressions
---------------------------
-Expressions are evaluated recursively:
+That's everything you need to know to start writing game logic in ArcScript!
 
-- `Literal` -> corresponding `Value`.
-- `Ident`   -> lookup in the environment; returns `Nil` if not found.
-- `Unary`   -> evaluate operand, apply `Negate` or `Not`.
-- `Binary`  -> evaluate left and right, then apply arithmetic/comparison/logical rules.
+For more examples, check out the examples/ directory in the repository.
+For questions or issues, open an issue on GitHub.
 
-Truthiness rules are simple:
-- `Bool(false)` and `Nil` are falsey.
-- Everything else is truthy.
+Happy scripting!
 
-5. Running the Code
--------------------
-You can run ArcScript in two modes:
-
-1. Demo mode (default):
-   cargo run
-
-   This executes the hardcoded demo in `src/main.rs`.
-
-2. REPL mode (interactive):
-   cargo run repl
-
-   This launches an interactive prompt where you can type ArcScript code line by line.
-   Type 'exit' to quit the REPL.
-
-3. Example scripts:
-   See the `examples/` directory for sample scripts demonstrating various features:
-   - basic.arc - Variables, functions, arithmetic
-   - tables_objects.arc - Tables and object declarations
-   - closures.arc - Closure capture and nested functions
-   - control_flow.arc - Loops and conditionals
-
-6. Limitations of the Current Implementation
---------------------------------------------
-The current implementation has the following remaining limitations:
-
-- Event dispatch system is not yet implemented (events can be declared but not executed/triggered).
-- No game-specific API (no built-in functions for position, input, spawning, etc.).
-- No performance optimizations or bytecode VM (direct AST interpretation).
-- No developer tooling (syntax highlighting, LSP, VS Code extension, debugger) integrated yet.
-- No resource limits or sandboxing for safe embedding.
-
-These limitations will be addressed in future iterations.
-
-7. Roadmap (High-Level)
-------------------------
-Planned evolution of ArcScript beyond the current implementation:
-
-1. ✅ Function Calls and Scope - DONE
-   - Functions are first-class values with closure capture.
-   - Call frames, local scopes, and return value propagation implemented.
-
-2. ✅ Tables and Object Prototypes - DONE
-   - Runtime table values with member/index access.
-   - Object declarations create tables with methods and fields.
-
-3. 🚧 Events for Game Logic - IN PROGRESS
-   - Implement event dispatch (`on start`, `on update(dt)`, etc.).
-   - Provide a small built-in game API surface (logging, timing, position, spawning).
-
-4. Bytecode VM and Optimizations
-   - Compile AST to bytecode.
-   - Implement a stack-based virtual machine.
-   - Add basic optimizations (constant folding, peephole passes).
-
-5. Engine Integration
-   - Provide a stable C/Rust API for embedding in game engines.
-   - Define script module loading, per-entity script instances, and event calls.
-
-6. Tooling and Developer Experience
-   - TextMate grammar and VS Code extension.
-   - Language Server (LSP) with diagnostics, hover, go-to-definition, and completion.
-   - Debugger support.
-
-8. How to Keep this Guide in Sync
----------------------------------
-Whenever the language changes in a significant way (new syntax, new runtime behavior, new game APIs, or new tooling), this guide should be updated to:
-
-- Describe new syntax/features.
-- Note any breaking changes.
-- Explain how the new features fit into the game scripting workflow.
-
-For now, this document reflects the **MVP** state of ArcScript as currently implemented in this repository.
+===============================================================================
