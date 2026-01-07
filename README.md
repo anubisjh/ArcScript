@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/arcscript/rust.yml?branch=main)](https://github.com/yourusername/arcscript/actions)
 
-**ArcScript** is a scripting language I built specifically for game development and interactive applications. Think of it as a blend of Lua's simplicity and Python's readability, but tailored for game logic. It's written in Rust, so it's fast and reliable—perfect for when you need to script complex game behavior without worrying about crashes or performance issues.
+**ArcScript** is a scripting language I built specifically for game development and interactive applications. Think of it as a blend of Lua's simplicity and Python's readability, but tailored for game logic. It's written in Rust, so it's fast and reliable, perfect for when you need to script complex game behavior without worrying about crashes or performance issues.
 
 Whether you're building an RPG with complex character systems, a puzzle game with intricate mechanics, or just need a clean way to script your game's logic, ArcScript has you covered.
 
@@ -13,7 +13,7 @@ Whether you're building an RPG with complex character systems, a puzzle game wit
 I wanted a scripting language that feels natural to write and doesn't get in your way when you're prototyping game ideas. Here's what makes ArcScript different:
 
 - **Genuinely Fast**: Built on Rust's foundation, so your scripts run smoothly even in complex game loops
-- **Actually Readable**: No weird syntax quirks—if you can read basic code, you can read ArcScript
+- **Actually Readable**: No weird syntax quirks. If you can read basic code, you can read ArcScript
 - **Real Closures**: First-class functions that actually work the way you'd expect them to
 - **Flexible Data Structures**: Tables and objects that make sense for game entities and state management
 - **Complete Standard Library**: All the math and string functions you need, already built in
@@ -70,7 +70,7 @@ var treasure = nil;      // Nil when you need "nothing"
 
 ### Functions Work How You'd Expect
 
-No complicated syntax here—just write what you mean:
+No complicated syntax here, just write what you mean:
 
 ```arcscript
 func greet(name): {
@@ -243,7 +243,7 @@ Each component does one job well:
 - **AST** ([src/ast.rs](src/ast.rs)): Clean representation of your program structure
 - **Interpreter** ([src/interpreter.rs](src/interpreter.rs)): Walks the tree and executes your code
 
-No magic, no hidden complexity—just a clean pipeline that's easy to debug and extend.
+No magic, no hidden complexity, just a clean pipeline that's easy to debug and extend.
 
 ## Testing
 
@@ -325,7 +325,7 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md) for more detailed guidelines on cod
 
 ## License
 
-MIT License—use it for whatever you want. See [LICENSE](LICENSE) for the legal details.
+MIT License, use it for whatever you want. See [LICENSE](LICENSE) for the legal details.
 
 ## Documentation
 
