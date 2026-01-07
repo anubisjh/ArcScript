@@ -2,5 +2,15 @@
 name = "arcscript"
 version = "0.1.0"
 edition = "2021"
+authors = ["ArcScript Contributors"]
+description = "A domain-specific scripting language for game logic and interactive applications"
+license = "MIT"
+repository = "https://github.com/yourusername/arcscript"
+keywords = ["scripting", "game-dev", "interpreter", "language"]
+categories = ["game-development", "parser-implementations"]
+
+[[bin]]
+name = "arcscript"
+path = "src/main.rs"
 
 [dependencies]
