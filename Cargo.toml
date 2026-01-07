@@ -2,10 +2,10 @@
 name = "arcscript"
 version = "1.0.0"
 edition = "2021"
-authors = ["ArcScript Contributors"]
+authors = ["Vasileios Petropoulos"]
 description = "A domain-specific scripting language for game logic and interactive applications"
 license = "MIT"
-repository = "https://github.com/yourusername/arcscript"
+repository = "https://github.com/anubisjh/ArcScript"
 keywords = ["scripting", "game-dev", "interpreter", "language"]
 categories = ["game-development", "parser-implementations"]
 
