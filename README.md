@@ -8,20 +8,20 @@
 
 Whether you're building an RPG with complex character systems, a puzzle game with intricate mechanics, or just need a clean way to script your game's logic, ArcScript has you covered.
 
-## ✨ Why ArcScript?
+## Why ArcScript?
 
 I wanted a scripting language that feels natural to write and doesn't get in your way when you're prototyping game ideas. Here's what makes ArcScript different:
 
-- 🚀 **Genuinely Fast**: Built on Rust's foundation, so your scripts run smoothly even in complex game loops
-- 🎯 **Actually Readable**: No weird syntax quirks—if you can read basic code, you can read ArcScript
-- 🔧 **Real Closures**: First-class functions that actually work the way you'd expect them to
-- 📦 **Flexible Data Structures**: Tables and objects that make sense for game entities and state management
-- 🛠️ **Complete Standard Library**: All the math and string functions you need, already built in
-- 🔍 **Helpful Error Messages**: When something breaks, you'll know exactly where and why
-- 💻 **Interactive REPL**: Test your game logic on the fly without recompiling anything
-- 🎨 **Built for Games**: Every feature was chosen with game development in mind
+- **Genuinely Fast**: Built on Rust's foundation, so your scripts run smoothly even in complex game loops
+- **Actually Readable**: No weird syntax quirks—if you can read basic code, you can read ArcScript
+- **Real Closures**: First-class functions that actually work the way you'd expect them to
+- **Flexible Data Structures**: Tables and objects that make sense for game entities and state management
+- **Complete Standard Library**: All the math and string functions you need, already built in
+- **Helpful Error Messages**: When something breaks, you'll know exactly where and why
+- **Interactive REPL**: Test your game logic on the fly without recompiling anything
+- **Built for Games**: Every feature was chosen with game development in mind
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Installation
 
@@ -54,7 +54,7 @@ cargo run repl
 cargo run
 ```
 
-## 📖 Learn the Language
+## Learn the Language
 
 ### Variables Are Simple
 
@@ -208,7 +208,7 @@ toUpper("hello");             // Uppercase: "HELLO"
 toLower("WORLD");             // Lowercase: "world"
 ```
 
-## 📚 Real Examples
+## Real Examples
 
 I've included a bunch of working examples in the `examples/` directory. Here's what each one shows:
 
@@ -228,7 +228,7 @@ Try them out:
 cargo run examples/basic.arc
 ```
 
-## 🏗️ How It Works
+## How It Works
 
 ArcScript uses a straightforward interpreter architecture that's easy to understand and extend:
 
@@ -245,7 +245,7 @@ Each component does one job well:
 
 No magic, no hidden complexity—just a clean pipeline that's easy to debug and extend.
 
-## 🧪 Testing
+## Testing
 
 The test suite covers all major features:
 
@@ -260,7 +260,7 @@ cargo test -- --nocapture
 cargo test test_closures
 ```
 
-## 🛣️ What's Next
+## What's Next
 
 Here's what's already done and what's coming:
 
@@ -286,29 +286,29 @@ Here's what's already done and what's coming:
 - [ ] Debugger integration
 - [ ] Module system for organizing larger projects
 
-## 📝 Recent Changes
+## Recent Changes
 
 Just wrapped up some major improvements (January 2026):
 
 **New Language Features:**
-- ✅ For loops that let you control start, end, and step: `for i = 0, 100, 5 do`
-- ✅ Break and continue for fine control over loops
-- ✅ Modulo operator (%) for things like even/odd checks
-- ✅ Compound assignments (+=, -=, *=, /=) to write cleaner code
+- For loops that let you control start, end, and step: `for i = 0, 100, 5 do`
+- Break and continue for fine control over loops
+- Modulo operator (%) for things like even/odd checks
+- Compound assignments (+=, -=, *=, /=) to write cleaner code
 
 **New Built-ins:**
-- ✅ Math functions: abs, min, max, floor, ceil, round, sqrt, pow
-- ✅ String functions: substring, contains, toUpper, toLower
-- ✅ Type operations: print, println, type, len, str, int, float
+- Math functions: abs, min, max, floor, ceil, round, sqrt, pow
+- String functions: substring, contains, toUpper, toLower
+- Type operations: print, println, type, len, str, int, float
 
 **Better Developer Experience:**
-- ✅ Run scripts directly from files
-- ✅ Error messages now show line numbers
-- ✅ 10 example files covering every feature
-- ✅ Comprehensive test suite
-- ✅ Professional setup with CI/CD
+- Run scripts directly from files
+- Error messages now show line numbers
+- 10 example files covering every feature
+- Comprehensive test suite
+- Professional setup with CI/CD
 
-## 🤝 Want to Contribute?
+## Want to Contribute?
 
 I'd love to see what you build with this! Contributions are absolutely welcome.
 
@@ -323,15 +323,15 @@ Here's how to get started:
 
 Check out [CONTRIBUTING.md](CONTRIBUTING.md) for more detailed guidelines on code style, testing, and what makes a good PR.
 
-## 📄 License
+## License
 
 MIT License—use it for whatever you want. See [LICENSE](LICENSE) for the legal details.
 
-## 📖 Documentation
+## Documentation
 
 Want to dive deeper? The complete language reference is in [docs/ArcScript_Guide.txt](docs/ArcScript_Guide.txt).
 
-## 🙏 Credits
+## Credits
 
 This project draws inspiration from some of my favorite languages:
 
@@ -343,4 +343,4 @@ Built with **Rust** because when you're running game scripts at 60fps, performan
 
 ---
 
-**Built for game developers who want to focus on creating, not debugging.** ❤️
+**Built for game developers who want to focus on creating, not debugging.**
