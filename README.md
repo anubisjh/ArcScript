@@ -128,7 +128,7 @@ if x > 10 then {
 var i = 0;
 while i < 5 do {
     println(i);
-    i = i + 1;
+    i += 1;  // Compound assignment
 } end
 
 // For loop
@@ -191,6 +191,7 @@ Check out the `examples/` directory for comprehensive examples:
 - **[builtins.arc](examples/builtins.arc)** - Built-in functions showcase
 - **[math.arc](examples/math.arc)** - Math functions (abs, sqrt, pow, etc.)
 - **[strings.arc](examples/strings.arc)** - String operations (substring, contains, etc.)
+- **[operators.arc](examples/operators.arc)** - Modulo (%) and compound assignments (+=, -=, etc.)
 - **[advanced.arc](examples/advanced.arc)** - Advanced features and patterns
 
 Run any example with:
@@ -229,6 +230,8 @@ cargo test test_closures
 - [x] Core language features (variables, functions, control flow)
 - [x] **For loops** with customizable step
 - [x] **Break/Continue** for loop control
+- [x] **Modulo operator** (%)
+- [x] **Compound assignments** (+=, -=, *=, /=)
 - [x] Closures with lexical scoping
 - [x] Tables and object declarations
 - [x] **Math functions** (abs, min, max, sqrt, pow, floor, ceil, round)

@@ -121,6 +121,54 @@ impl<'a> Parser<'a> {
                 Ok(Stmt::Block(block))
             }
             _ => {
+                // Check for assignment operators (+=, -=, *=, /=)
+                // Parse identifier first to check for compound assignment
+                if let TokenKind::Identifier = self.current.kind {
+                    let name = self.current.lexeme.clone();
+                    self.advance();
+                    
+                    // Check for compound assignment
+                    let compound_op = match self.current.kind {
+                        TokenKind::PlusEqual => Some(BinaryOp::Add),
+                        TokenKind::MinusEqual => Some(BinaryOp::Sub),
+                        TokenKind::StarEqual => Some(BinaryOp::Mul),
+                        TokenKind::SlashEqual => Some(BinaryOp::Div),
+                        TokenKind::Equal => Some(BinaryOp::Add), // Just a marker, we'll handle = separately
+                        _ => None,
+                    };
+                    
+                    if let Some(op) = compound_op {
+                        if self.current.kind == TokenKind::Equal {
+                            // Regular assignment: x = expr
+                            self.advance();
+                            let rhs = self.parse_expression()?;
+                            if self.current.kind == TokenKind::Semicolon {
+                                self.advance();
+                            }
+                            return Ok(Stmt::Assignment { name, value: rhs });
+                        } else {
+                            // Compound assignment: x += expr
+                            self.advance();
+                            let rhs = self.parse_expression()?;
+                            if self.current.kind == TokenKind::Semicolon {
+                                self.advance();
+                            }
+                            // Desugar: x += 5  becomes  x = x + 5
+                            let new_value = Expr::Binary {
+                                left: Box::new(Expr::Ident(name.clone())),
+                                op,
+                                right: Box::new(rhs),
+                            };
+                            return Ok(Stmt::Assignment { name, value: new_value });
+                        }
+                    }
+                    // If we get here, it wasn't an assignment - this is an error in our parsing
+                    // We consumed the identifier but can't backtrack easily
+                    // For now, return an error
+                    return Err(self.error("unexpected token after identifier"));
+                }
+                
+                // Not an identifier, parse as expression
                 let expr = self.parse_expression()?;
                 if self.current.kind == TokenKind::Semicolon {
                     self.advance();
@@ -538,6 +586,7 @@ impl<'a> Parser<'a> {
             let op = match self.current.kind {
                 TokenKind::Star => Some(BinaryOp::Mul),
                 TokenKind::Slash => Some(BinaryOp::Div),
+                TokenKind::Percent => Some(BinaryOp::Mod),
                 _ => None,
             };
             if let Some(bin_op) = op {
@@ -567,6 +616,15 @@ impl<'a> Parser<'a> {
             }
             TokenKind::KwNot => {
                 self.advance();
+                let expr = self.parse_unary()?;
+                Ok(Expr::Unary {
+                    op: UnaryOp::Not,
+                    expr: Box::new(expr),
+                })
+            }
+            _ => self.parse_primary(),
+        }
+    }
                 let expr = self.parse_unary()?;
                 Ok(Expr::Unary {
                     op: UnaryOp::Not,

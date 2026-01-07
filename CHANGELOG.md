@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Core Language Features**
   - Variables with multiple types (int, float, bool, string, nil)
-  - Arithmetic and logical operators
+  - Arithmetic and logical operators (+, -, *, /, **%**)
+  - **Modulo operator** (%) for remainder calculations
+  - **Compound assignments** (+=, -=, *=, /=) desugared at parse time
   - First-class functions with closure support
   - Control flow (if/elif/else, while loops, **for loops**)
   - **For loops** with syntax: `for var = start, end, step do { ... } end`
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Runtime errors with descriptive messages
   - Optional line number tracking in runtime errors
   - Division by zero detection
+  - **Modulo by zero detection**
   - Type error checking
 
 - **Developer Tools**

@@ -49,6 +49,7 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div,
+    Mod,
     Equal,
     NotEqual,
     Less,
@@ -75,6 +76,10 @@ pub enum Stmt {
     VarDecl {
         name: String,
         init: Expr,
+    },
+    Assignment {
+        name: String,
+        value: Expr,
     },
     Expr(Expr),
     Block(Vec<Stmt>),

@@ -36,6 +36,7 @@ pub enum TokenKind {
     Minus,
     Star,
     Slash,
+    Percent,
     Equal,
     EqualEqual,
     BangEqual,
@@ -176,6 +177,7 @@ impl<'a> Lexer<'a> {
                     self.simple_token(TokenKind::Slash, "/", start_line, start_column)
                 }
             }
+            b'%' => self.simple_token(TokenKind::Percent, "%", start_line, start_column),
             b'=' => {
                 if self.match_next(b'=') {
                     self.simple_token(TokenKind::EqualEqual, "==", start_line, start_column)

@@ -473,6 +473,12 @@ impl Interpreter {
                 self.env.define(name.clone(), v);
                 Ok(None)
             }
+            Stmt::Assignment { name, value } => {
+                let v = self.eval_expr(value)?;
+                // For assignment, we update existing variable (or create if not exists)
+                self.env.define(name.clone(), v);
+                Ok(None)
+            }
             Stmt::Expr(expr) => {
                 let _ = self.eval_expr(expr)?;
                 Ok(None)
@@ -743,11 +749,17 @@ impl Interpreter {
             Sub => self.sub(left, right),
             Mul => self.mul(left, right),
             Div => self.div(left, right),
+            Mod => self.modulo(left, right),
             Equal => Ok(Value::Bool(self.eq(left, right))),
             NotEqual => Ok(Value::Bool(!self.eq(left, right))),
             Less => self.cmp(|a, b| a < b, left, right),
             LessEqual => self.cmp(|a, b| a <= b, left, right),
             Greater => self.cmp(|a, b| a > b, left, right),
+            GreaterEqual => self.cmp(|a, b| a >= b, left, right),
+            And => Ok(self.apply_and(left, right)),
+            Or => Ok(self.apply_or(left, right)),
+        }
+    }
             GreaterEqual => self.cmp(|a, b| a >= b, left, right),
             And => Ok(Value::Bool(self.truthy(&left) && self.truthy(&right))),
             Or => Ok(Value::Bool(self.truthy(&left) || self.truthy(&right))),
@@ -804,6 +816,40 @@ impl Interpreter {
                 if b == 0 { Err(RuntimeError::new("division by zero")) } else { Ok(Value::Float(a / b as f64)) }
             }
             _ => Err(RuntimeError::new("type error: cannot divide the given operands")),
+        }
+    }
+
+    fn modulo(&self, left: Value, right: Value) -> Result<Value, RuntimeError> {
+        match (left, right) {
+            (Value::Int(a), Value::Int(b)) => {
+                if b == 0 {
+                    Err(RuntimeError::new("modulo by zero"))
+                } else {
+                    Ok(Value::Int(a % b))
+                }
+            }
+            (Value::Float(a), Value::Float(b)) => {
+                if b == 0.0 { 
+                    Err(RuntimeError::new("modulo by zero")) 
+                } else { 
+                    Ok(Value::Float(a % b)) 
+                }
+            }
+            (Value::Int(a), Value::Float(b)) => {
+                if b == 0.0 { 
+                    Err(RuntimeError::new("modulo by zero")) 
+                } else { 
+                    Ok(Value::Float((a as f64) % b)) 
+                }
+            }
+            (Value::Float(a), Value::Int(b)) => {
+                if b == 0 { 
+                    Err(RuntimeError::new("modulo by zero")) 
+                } else { 
+                    Ok(Value::Float(a % (b as f64))) 
+                }
+            }
+            _ => Err(RuntimeError::new("type error: cannot apply modulo to the given operands")),
         }
     }
 
