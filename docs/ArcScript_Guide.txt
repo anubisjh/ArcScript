@@ -45,7 +45,7 @@ What's still coming:
 --------------------------------------
 
 Understanding the basics of how your code gets executed will help you write
-better scripts. Don't worry—it's not complicated.
+better scripts. Don't worry, it's not complicated.
 
 The Pipeline:
 
@@ -80,7 +80,7 @@ though not quite as fast as a bytecode VM (that's coming later).
 3. The Language: Variables and Types
 ------------------------------------
 
-ArcScript keeps types simple. You don't need to declare types explicitly—
+ArcScript keeps types simple. You don't need to declare types explicitly,
 the language figures it out from what you assign.
 
 Available Types:
@@ -190,7 +190,7 @@ Variable Declaration:
 Expression Statement (Evaluate and Discard):
 
   calculateScore();       // Call function, ignore return value
-  x + 1;                  // Valid but useless—result is discarded
+  x + 1;                  // Valid but useless, result is discarded
 
 If/Elif/Else (Conditional Branching):
 
@@ -342,7 +342,7 @@ Each AI function remembers its own aggression level!
 --------------------------------
 
 Tables are your go-to data structure for anything with multiple related values.
-Think player stats, item properties, game state—anything that needs key-value
+Think player stats, item properties, game state, anything that needs key-value
 storage.
 
 Creating Tables:
