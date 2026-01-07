@@ -12,19 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Variables with multiple types (int, float, bool, string, nil)
   - Arithmetic and logical operators
   - First-class functions with closure support
-  - Control flow (if/elif/else, while loops)
+  - Control flow (if/elif/else, while loops, **for loops**)
+  - **For loops** with syntax: `for var = start, end, step do { ... } end`
+  - **Break and continue** statements for loop control
   - Tables (key-value data structures)
   - Object declarations for game entity prototypes
   - Member access (`obj.field`) and index access (`obj["key"]`)
 
 - **Built-in Functions**
-  - `print()` - Output without newline
-  - `println()` - Output with newline
-  - `type()` - Get type of value
-  - `len()` - Get length of string or table
-  - `str()` - Convert to string
-  - `int()` - Convert to integer
-  - `float()` - Convert to float
+  - **Output**: `print()`, `println()`
+  - **Type Operations**: `type()`, `len()`
+  - **Type Conversions**: `str()`, `int()`, `float()`
+  - **Math Functions**: `abs()`, `min()`, `max()`, `floor()`, `ceil()`, `round()`, `sqrt()`, `pow()`
+  - **String Functions**: `substring()`, `contains()`, `toUpper()`, `toLower()`
 
 - **Error Handling**
   - Structured parser errors with line/column information
@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - tables_objects.arc - Tables and objects
   - builtins.arc - Built-in functions
   - advanced.arc - Advanced patterns
+  - **loops.arc** - For loop examples with break/continue
+  - **math.arc** - Math functions showcase
+  - **strings.arc** - String manipulation examples
 
 - **Project Infrastructure**
   - MIT License

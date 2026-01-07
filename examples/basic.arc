@@ -1,6 +1,7 @@
 // Basic ArcScript Example
 // Variables, arithmetic, and functions
 
+// Basic variable declarations
 var x = 10;
 var y = 20;
 var sum = x + y;

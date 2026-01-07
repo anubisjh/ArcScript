@@ -96,15 +96,34 @@ impl Interpreter {
     }
 
     fn register_builtins(env: &mut Environment) {
-        // Built-in functions are marked with a special marker
-        // We'll handle them in eval_call
+        // Output functions
         env.define("print".to_string(), Value::BuiltinFunction("print".to_string()));
         env.define("println".to_string(), Value::BuiltinFunction("println".to_string()));
+        
+        // Type operations
         env.define("type".to_string(), Value::BuiltinFunction("type".to_string()));
         env.define("len".to_string(), Value::BuiltinFunction("len".to_string()));
+        
+        // Type conversions
         env.define("str".to_string(), Value::BuiltinFunction("str".to_string()));
         env.define("int".to_string(), Value::BuiltinFunction("int".to_string()));
         env.define("float".to_string(), Value::BuiltinFunction("float".to_string()));
+        
+        // Math functions
+        env.define("abs".to_string(), Value::BuiltinFunction("abs".to_string()));
+        env.define("min".to_string(), Value::BuiltinFunction("min".to_string()));
+        env.define("max".to_string(), Value::BuiltinFunction("max".to_string()));
+        env.define("floor".to_string(), Value::BuiltinFunction("floor".to_string()));
+        env.define("ceil".to_string(), Value::BuiltinFunction("ceil".to_string()));
+        env.define("round".to_string(), Value::BuiltinFunction("round".to_string()));
+        env.define("sqrt".to_string(), Value::BuiltinFunction("sqrt".to_string()));
+        env.define("pow".to_string(), Value::BuiltinFunction("pow".to_string()));
+        
+        // String functions
+        env.define("substring".to_string(), Value::BuiltinFunction("substring".to_string()));
+        env.define("contains".to_string(), Value::BuiltinFunction("contains".to_string()));
+        env.define("toUpper".to_string(), Value::BuiltinFunction("toUpper".to_string()));
+        env.define("toLower".to_string(), Value::BuiltinFunction("toLower".to_string()));
     }
 
     fn eval_function_body(&mut self, body: &Stmt) -> Result<Option<Value>, RuntimeError> {
@@ -252,6 +271,177 @@ impl Interpreter {
                     _ => Err(RuntimeError::new("cannot convert to float")),
                 }
             }
+            // Math functions
+            "abs" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("abs() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Int(i) => Ok(Value::Int(i.abs())),
+                    Value::Float(f) => Ok(Value::Float(f.abs())),
+                    _ => Err(RuntimeError::new("abs() requires numeric argument")),
+                }
+            }
+            "min" => {
+                if args.len() < 2 {
+                    return Err(RuntimeError::new("min() requires 2 arguments"));
+                }
+                let a = self.eval_expr(&args[0])?;
+                let b = self.eval_expr(&args[1])?;
+                match (a, b) {
+                    (Value::Int(x), Value::Int(y)) => Ok(Value::Int(x.min(y))),
+                    (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x.min(y))),
+                    (Value::Int(x), Value::Float(y)) => Ok(Value::Float((x as f64).min(y))),
+                    (Value::Float(x), Value::Int(y)) => Ok(Value::Float(x.min(y as f64))),
+                    _ => Err(RuntimeError::new("min() requires numeric arguments")),
+                }
+            }
+            "max" => {
+                if args.len() < 2 {
+                    return Err(RuntimeError::new("max() requires 2 arguments"));
+                }
+                let a = self.eval_expr(&args[0])?;
+                let b = self.eval_expr(&args[1])?;
+                match (a, b) {
+                    (Value::Int(x), Value::Int(y)) => Ok(Value::Int(x.max(y))),
+                    (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x.max(y))),
+                    (Value::Int(x), Value::Float(y)) => Ok(Value::Float((x as f64).max(y))),
+                    (Value::Float(x), Value::Int(y)) => Ok(Value::Float(x.max(y as f64))),
+                    _ => Err(RuntimeError::new("max() requires numeric arguments")),
+                }
+            }
+            "floor" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("floor() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Float(f) => Ok(Value::Int(f.floor() as i64)),
+                    Value::Int(i) => Ok(Value::Int(i)),
+                    _ => Err(RuntimeError::new("floor() requires numeric argument")),
+                }
+            }
+            "ceil" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("ceil() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Float(f) => Ok(Value::Int(f.ceil() as i64)),
+                    Value::Int(i) => Ok(Value::Int(i)),
+                    _ => Err(RuntimeError::new("ceil() requires numeric argument")),
+                }
+            }
+            "round" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("round() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Float(f) => Ok(Value::Int(f.round() as i64)),
+                    Value::Int(i) => Ok(Value::Int(i)),
+                    _ => Err(RuntimeError::new("round() requires numeric argument")),
+                }
+            }
+            "sqrt" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("sqrt() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Float(f) => {
+                        if f < 0.0 {
+                            Err(RuntimeError::new("sqrt() requires non-negative argument"))
+                        } else {
+                            Ok(Value::Float(f.sqrt()))
+                        }
+                    }
+                    Value::Int(i) => {
+                        if i < 0 {
+                            Err(RuntimeError::new("sqrt() requires non-negative argument"))
+                        } else {
+                            Ok(Value::Float((i as f64).sqrt()))
+                        }
+                    }
+                    _ => Err(RuntimeError::new("sqrt() requires numeric argument")),
+                }
+            }
+            "pow" => {
+                if args.len() < 2 {
+                    return Err(RuntimeError::new("pow() requires 2 arguments"));
+                }
+                let base = self.eval_expr(&args[0])?;
+                let exp = self.eval_expr(&args[1])?;
+                match (base, exp) {
+                    (Value::Float(b), Value::Float(e)) => Ok(Value::Float(b.powf(e))),
+                    (Value::Float(b), Value::Int(e)) => Ok(Value::Float(b.powi(e as i32))),
+                    (Value::Int(b), Value::Float(e)) => Ok(Value::Float((b as f64).powf(e))),
+                    (Value::Int(b), Value::Int(e)) => {
+                        if e >= 0 && e <= i32::MAX as i64 {
+                            Ok(Value::Float((b as f64).powi(e as i32)))
+                        } else {
+                            Ok(Value::Float((b as f64).powf(e as f64)))
+                        }
+                    }
+                    _ => Err(RuntimeError::new("pow() requires numeric arguments")),
+                }
+            }
+            // String functions
+            "substring" => {
+                if args.len() < 3 {
+                    return Err(RuntimeError::new("substring() requires 3 arguments (string, start, end)"));
+                }
+                let s = self.eval_expr(&args[0])?;
+                let start = self.eval_expr(&args[1])?;
+                let end = self.eval_expr(&args[2])?;
+                
+                match (s, start, end) {
+                    (Value::String(s), Value::Int(start), Value::Int(end)) => {
+                        let start = start.max(0) as usize;
+                        let end = end.max(0) as usize;
+                        let chars: Vec<char> = s.chars().collect();
+                        let end = end.min(chars.len());
+                        let start = start.min(end);
+                        Ok(Value::String(chars[start..end].iter().collect()))
+                    }
+                    _ => Err(RuntimeError::new("substring() requires (string, int, int)")),
+                }
+            }
+            "contains" => {
+                if args.len() < 2 {
+                    return Err(RuntimeError::new("contains() requires 2 arguments"));
+                }
+                let s = self.eval_expr(&args[0])?;
+                let substr = self.eval_expr(&args[1])?;
+                
+                match (s, substr) {
+                    (Value::String(s), Value::String(substr)) => {
+                        Ok(Value::Bool(s.contains(&substr)))
+                    }
+                    _ => Err(RuntimeError::new("contains() requires two string arguments")),
+                }
+            }
+            "toUpper" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("toUpper() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::String(s) => Ok(Value::String(s.to_uppercase())),
+                    _ => Err(RuntimeError::new("toUpper() requires string argument")),
+                }
+            }
+            "toLower" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("toLower() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::String(s) => Ok(Value::String(s.to_lowercase())),
+                    _ => Err(RuntimeError::new("toLower() requires string argument")),
+                }
+            }
             _ => Err(RuntimeError::new(&format!("unknown built-in function: {}", name))),
         }
     }
@@ -325,8 +515,78 @@ impl Interpreter {
             }
             Stmt::While { condition, body } => {
                 while self.truthy(&self.eval_expr(condition)?) {
-                    self.eval_stmt(body)?;
+                    match self.eval_stmt(body)? {
+                        Some(Value::Nil) if matches!(body.as_ref(), Stmt::Break) => break,
+                        Some(v) => return Ok(Some(v)), // return from function
+                        None => continue,
+                    }
                 }
+                Ok(None)
+            }
+            Stmt::For { var_name, start, end, step, body } => {
+                let start_val = self.eval_expr(start)?;
+                let end_val = self.eval_expr(end)?;
+                let step_val = if let Some(step_expr) = step {
+                    self.eval_expr(step_expr)?
+                } else {
+                    Value::Int(1)
+                };
+                
+                // Extract numeric values
+                let (start_num, end_num, step_num) = match (start_val, end_val, step_val) {
+                    (Value::Int(s), Value::Int(e), Value::Int(st)) => (s, e, st),
+                    (Value::Float(s), Value::Float(e), Value::Float(st)) => {
+                        (s as i64, e as i64, st as i64)
+                    }
+                    (Value::Int(s), Value::Float(e), Value::Int(st)) => (s, e as i64, st),
+                    (Value::Float(s), Value::Int(e), Value::Float(st)) => (s as i64, e, st as i64),
+                    _ => return Err(RuntimeError::new("for loop requires numeric start, end, and step")),
+                };
+                
+                if step_num == 0 {
+                    return Err(RuntimeError::new("for loop step cannot be zero"));
+                }
+                
+                // Create new scope for the loop
+                let prev_env = self.env.clone();
+                let loop_env = Environment::with_parent(Some(Box::new(prev_env.clone())));
+                let saved_env = std::mem::replace(&mut self.env, loop_env);
+                
+                let mut i = start_num;
+                let result = loop {
+                    // Check loop condition based on step direction
+                    let should_continue = if step_num > 0 {
+                        i <= end_num
+                    } else {
+                        i >= end_num
+                    };
+                    
+                    if !should_continue {
+                        break Ok(None);
+                    }
+                    
+                    // Define/update loop variable
+                    self.env.define(var_name.clone(), Value::Int(i));
+                    
+                    // Execute body
+                    match self.eval_stmt(body)? {
+                        Some(v) if matches!(body.as_ref(), Stmt::Break) => break Ok(None),
+                        Some(v) => break Ok(Some(v)), // return from function
+                        None => {}
+                    }
+                    
+                    i += step_num;
+                };
+                
+                self.env = saved_env;
+                result
+            }
+            Stmt::Break => {
+                // Break is handled by the loop that contains it
+                Ok(Some(Value::Nil))
+            }
+            Stmt::Continue => {
+                // Continue is handled by the loop that contains it
                 Ok(None)
             }
             Stmt::Return(expr_opt) => {

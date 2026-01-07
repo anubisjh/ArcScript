@@ -92,6 +92,21 @@ impl<'a> Parser<'a> {
             TokenKind::KwVar => self.parse_var_decl(),
             TokenKind::KwIf => self.parse_if_stmt(),
             TokenKind::KwWhile => self.parse_while_stmt(),
+            TokenKind::KwFor => self.parse_for_stmt(),
+            TokenKind::KwBreak => {
+                self.advance();
+                if self.current.kind == TokenKind::Semicolon {
+                    self.advance();
+                }
+                Ok(Stmt::Break)
+            }
+            TokenKind::KwContinue => {
+                self.advance();
+                if self.current.kind == TokenKind::Semicolon {
+                    self.advance();
+                }
+                Ok(Stmt::Continue)
+            }
             TokenKind::KwReturn => self.parse_return_stmt(),
             TokenKind::KwFunc => {
                 let func = self.parse_func_decl()?;
@@ -198,6 +213,38 @@ impl<'a> Parser<'a> {
             condition,
             body: Box::new(body),
         })
+    }
+
+    fn parse_for_stmt(&mut self) -> Result<Stmt, ParseError> {
+        self.consume(TokenKind::KwFor, "expected 'for'")?;
+        
+        // Parse: for var_name = start, end [, step] do
+        let var_name = if let TokenKind::Identifier = self.current.kind {
+            let n = self.current.lexeme.clone();
+            self.advance();
+            n
+        } else {
+            return Err(self.error("expected variable name after 'for'"));
+        };
+        
+        self.consume(TokenKind::Equal, "expected '=' after for variable")?;
+        let start = self.parse_expression()?;
+        
+        self.consume(TokenKind::Comma, "expected ',' after for start value")?;
+        let end = self.parse_expression()?;
+        
+        let step = if self.current.kind == TokenKind::Comma {
+            self.advance();
+            Some(self.parse_expression()?)
+        } else {
+            None
+        };
+        
+        self.consume(TokenKind::KwDo, "expected 'do' before for body")?;
+        let body = Stmt::Block(self.parse_block()?);
+        self.consume(TokenKind::KwEnd, "expected 'end' after for body")?;
+        
+        Ok(Stmt::For { var_name, start, end, step, body: Box::new(body) })
     }
 
     fn parse_return_stmt(&mut self) -> Result<Stmt, ParseError> {

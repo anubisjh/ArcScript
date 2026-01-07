@@ -1,6 +1,9 @@
 // Table and Object Example
 
 // Table literal
+// Tables and Objects Demo
+
+// Create a table with key-value pairs
 var player = {
     name: "Hero",
     hp: 100,

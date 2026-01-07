@@ -130,6 +130,19 @@ while i < 5 do {
     println(i);
     i = i + 1;
 } end
+
+// For loop
+for i = 1, 10, 1 do {
+    println(i);
+} end
+
+// Loop control
+for i = 1, 100, 1 do {
+    if i > 5 then {
+        break;
+    } end
+    println(i);
+} end
 ```
 
 ### Built-in Functions
@@ -148,6 +161,22 @@ len({a: 1, b: 2});      // 2
 int("42");               // 42
 float(10);               // 10.0
 str(42);                 // "42"
+
+// Math functions
+abs(-10);                // 10
+min(5, 10);              // 5
+max(5, 10);              // 10
+sqrt(16);                // 4.0
+pow(2, 8);               // 256.0
+floor(3.7);              // 3
+ceil(3.2);               // 4
+round(3.5);              // 4
+
+// String functions
+substring("Hello", 0, 2);    // "He"
+contains("test", "es");      // true
+toUpper("hello");            // "HELLO"
+toLower("WORLD");            // "world"
 ```
 
 ## 📚 Examples
@@ -156,9 +185,12 @@ Check out the `examples/` directory for comprehensive examples:
 
 - **[basic.arc](examples/basic.arc)** - Variables, functions, and arithmetic
 - **[control_flow.arc](examples/control_flow.arc)** - Conditionals and loops
+- **[loops.arc](examples/loops.arc)** - For loops with break/continue
 - **[closures.arc](examples/closures.arc)** - Closure capture and nested functions
 - **[tables_objects.arc](examples/tables_objects.arc)** - Tables and object declarations
 - **[builtins.arc](examples/builtins.arc)** - Built-in functions showcase
+- **[math.arc](examples/math.arc)** - Math functions (abs, sqrt, pow, etc.)
+- **[strings.arc](examples/strings.arc)** - String operations (substring, contains, etc.)
 - **[advanced.arc](examples/advanced.arc)** - Advanced features and patterns
 
 Run any example with:
@@ -195,8 +227,12 @@ cargo test test_closures
 ## 🛣️ Roadmap
 
 - [x] Core language features (variables, functions, control flow)
+- [x] **For loops** with customizable step
+- [x] **Break/Continue** for loop control
 - [x] Closures with lexical scoping
 - [x] Tables and object declarations
+- [x] **Math functions** (abs, min, max, sqrt, pow, floor, ceil, round)
+- [x] **String functions** (substring, contains, toUpper, toLower)
 - [x] Standard library (print, type, len, conversions)
 - [x] REPL and file execution
 - [x] Error handling with line numbers
@@ -210,10 +246,14 @@ cargo test test_closures
 ## 📝 Recent Updates (January 2026)
 
 Latest improvements include:
+- ✅ **For Loops**: `for var = start, end, step do { ... } end`
+- ✅ **Loop Control**: `break` and `continue` statements
+- ✅ **Math Functions**: `abs`, `min`, `max`, `floor`, `ceil`, `round`, `sqrt`, `pow`
+- ✅ **String Functions**: `substring`, `contains`, `toUpper`, `toLower`
 - ✅ **Built-in Functions**: `print`, `println`, `type`, `len`, `str`, `int`, `float`
 - ✅ **File Execution**: Run ArcScript files directly from the command line
 - ✅ **Enhanced Errors**: Runtime error messages now include line numbers
-- ✅ **New Examples**: Added `builtins.arc` and `advanced.arc` showcasing all features
+- ✅ **New Examples**: 9 example files showcasing all features
 - ✅ **Comprehensive Tests**: 10+ unit tests covering all language features
 - ✅ **Professional Setup**: MIT License, CI/CD with GitHub Actions
 

@@ -1,4 +1,5 @@
 // Advanced Features Showcase
+// This example demonstrates closures, tables, recursion, and more
 
 println("=== Advanced ArcScript Features ===");
 println();
