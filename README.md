@@ -6,6 +6,7 @@
 
 **ArcScript** is a scripting language I built specifically for game development and interactive applications. Think of it as a blend of Lua's simplicity and Python's readability, but tailored for game logic. It's written in Rust, so it's fast and reliable, perfect for when you need to script complex game behavior without worrying about crashes or performance issues.
 
+
 Whether you're building an RPG with complex character systems, a puzzle game with intricate mechanics, or just need a clean way to script your game's logic, ArcScript has you covered.
 
 ## Why ArcScript?
