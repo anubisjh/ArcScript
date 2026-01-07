@@ -2,7 +2,7 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/arcscript/rust.yml?branch=main)](https://github.com/yourusername/arcscript/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/anubisjh/ArcScript/rust.yml?branch=main)](https://github.com/anubisjh/ArcScript/actions)
 
 **ArcScript** is a scripting language I built specifically for game development and interactive applications. Think of it as a blend of Lua's simplicity and Python's readability, but tailored for game logic. It's written in Rust, so it's fast and reliable, perfect for when you need to script complex game behavior without worrying about crashes or performance issues.
 
@@ -29,8 +29,8 @@ First, make sure you have Rust installed (you'll need version 1.70 or newer). Th
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/arcscript.git
-cd arcscript
+git clone https://github.com/anubisjh/ArcScript.git
+cd ArcScript
 
 # Build it (this might take a minute the first time)
 cargo build --release
