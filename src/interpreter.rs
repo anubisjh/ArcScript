@@ -7,17 +7,32 @@ use crate::ast::{BinaryOp, Expr, FuncDecl, Literal, Program, Stmt, UnaryOp};
 #[derive(Debug, Clone)]
 pub struct RuntimeError {
     pub message: String,
+    pub line: Option<usize>,
 }
 
 impl RuntimeError {
     pub fn new(msg: &str) -> Self {
-        Self { message: msg.to_string() }
+        Self { 
+            message: msg.to_string(),
+            line: None,
+        }
+    }
+    
+    pub fn with_line(msg: &str, line: usize) -> Self {
+        Self {
+            message: msg.to_string(),
+            line: Some(line),
+        }
     }
 }
 
 impl std::fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)
+        if let Some(line) = self.line {
+            write!(f, "Line {}: {}", line, self.message)
+        } else {
+            write!(f, "{}", self.message)
+        }
     }
 }
 
@@ -34,6 +49,7 @@ pub enum Value {
         closure: Option<Box<Environment>>,
     },
     Table(HashMap<String, Value>),
+    BuiltinFunction(String), // Built-in function by name
     Nil,
 }
 
@@ -73,9 +89,22 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new() -> Self {
-        Self {
-            env: Environment::new(),
-        }
+        let mut env = Environment::new();
+        // Register built-in functions
+        Self::register_builtins(&mut env);
+        Self { env }
+    }
+
+    fn register_builtins(env: &mut Environment) {
+        // Built-in functions are marked with a special marker
+        // We'll handle them in eval_call
+        env.define("print".to_string(), Value::BuiltinFunction("print".to_string()));
+        env.define("println".to_string(), Value::BuiltinFunction("println".to_string()));
+        env.define("type".to_string(), Value::BuiltinFunction("type".to_string()));
+        env.define("len".to_string(), Value::BuiltinFunction("len".to_string()));
+        env.define("str".to_string(), Value::BuiltinFunction("str".to_string()));
+        env.define("int".to_string(), Value::BuiltinFunction("int".to_string()));
+        env.define("float".to_string(), Value::BuiltinFunction("float".to_string()));
     }
 
     fn eval_function_body(&mut self, body: &Stmt) -> Result<Option<Value>, RuntimeError> {
@@ -96,6 +125,12 @@ impl Interpreter {
 
     fn eval_call(&mut self, callee: &Expr, args: &[Expr]) -> Result<Value, RuntimeError> {
         let callee_val = self.eval_expr(callee)?;
+        
+        // Handle built-in functions
+        if let Value::BuiltinFunction(name) = callee_val {
+            return self.call_builtin(&name, args);
+        }
+        
         let (func, closure) = match callee_val {
             Value::Function { decl, closure } => (decl, closure),
             _ => {
@@ -126,6 +161,112 @@ impl Interpreter {
         let result_opt = self.eval_function_body(&func.body)?;
         self.env = saved_env;
         Ok(result_opt.unwrap_or(Value::Nil))
+    }
+
+    fn call_builtin(&mut self, name: &str, args: &[Expr]) -> Result<Value, RuntimeError> {
+        match name {
+            "print" => {
+                for (i, arg) in args.iter().enumerate() {
+                    if i > 0 {
+                        print!(" ");
+                    }
+                    print!("{}", self.value_to_string(&self.eval_expr(arg)?));
+                }
+                Ok(Value::Nil)
+            }
+            "println" => {
+                for (i, arg) in args.iter().enumerate() {
+                    if i > 0 {
+                        print!(" ");
+                    }
+                    print!("{}", self.value_to_string(&self.eval_expr(arg)?));
+                }
+                println!();
+                Ok(Value::Nil)
+            }
+            "type" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("type() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                let type_name = match val {
+                    Value::Int(_) => "int",
+                    Value::Float(_) => "float",
+                    Value::Bool(_) => "bool",
+                    Value::String(_) => "string",
+                    Value::Function { .. } => "function",
+                    Value::Table(_) => "table",
+                    Value::BuiltinFunction(_) => "builtin_function",
+                    Value::Nil => "nil",
+                };
+                Ok(Value::String(type_name.to_string()))
+            }
+            "len" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("len() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::String(s) => Ok(Value::Int(s.len() as i64)),
+                    Value::Table(t) => Ok(Value::Int(t.len() as i64)),
+                    _ => Err(RuntimeError::new("len() requires string or table argument")),
+                }
+            }
+            "str" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("str() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                Ok(Value::String(self.value_to_string(&val)))
+            }
+            "int" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("int() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Int(i) => Ok(Value::Int(i)),
+                    Value::Float(f) => Ok(Value::Int(f as i64)),
+                    Value::String(s) => {
+                        s.parse::<i64>()
+                            .map(Value::Int)
+                            .map_err(|_| RuntimeError::new("cannot convert string to int"))
+                    }
+                    Value::Bool(b) => Ok(Value::Int(if b { 1 } else { 0 })),
+                    _ => Err(RuntimeError::new("cannot convert to int")),
+                }
+            }
+            "float" => {
+                if args.is_empty() {
+                    return Err(RuntimeError::new("float() requires 1 argument"));
+                }
+                let val = self.eval_expr(&args[0])?;
+                match val {
+                    Value::Int(i) => Ok(Value::Float(i as f64)),
+                    Value::Float(f) => Ok(Value::Float(f)),
+                    Value::String(s) => {
+                        s.parse::<f64>()
+                            .map(Value::Float)
+                            .map_err(|_| RuntimeError::new("cannot convert string to float"))
+                    }
+                    _ => Err(RuntimeError::new("cannot convert to float")),
+                }
+            }
+            _ => Err(RuntimeError::new(&format!("unknown built-in function: {}", name))),
+        }
+    }
+
+    fn value_to_string(&self, val: &Value) -> String {
+        match val {
+            Value::Int(i) => i.to_string(),
+            Value::Float(f) => f.to_string(),
+            Value::Bool(b) => b.to_string(),
+            Value::String(s) => s.clone(),
+            Value::Function { .. } => "<function>".to_string(),
+            Value::Table(_) => "<table>".to_string(),
+            Value::BuiltinFunction(name) => format!("<builtin: {}>", name),
+            Value::Nil => "nil".to_string(),
+        }
     }
 
     pub fn eval_program(&mut self, program: &Program) -> Result<(), RuntimeError> {

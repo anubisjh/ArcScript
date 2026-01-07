@@ -8,8 +8,11 @@ use std::io::{self, Write};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     
-    if args.len() > 1 && args[1] == "repl" {
-        run_repl();
+    if args.len() > 1 {
+        match args[1].as_str() {
+            "repl" => run_repl(),
+            _ => run_file(&args[1]),
+        }
     } else {
         run_demo();
     }
@@ -84,4 +87,33 @@ fn run_repl() {
     }
     
     println!("\nGoodbye!");
+}
+
+fn run_file(path: &str) {
+    let source = match std::fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading file '{}': {}", path, e);
+            std::process::exit(1);
+        }
+    };
+
+    let lexer = lexer::Lexer::new(&source);
+    let mut parser = parser::Parser::new(lexer);
+    let program = match parser.parse_program() {
+        Ok(p) => p,
+        Err(errors) => {
+            eprintln!("Parse errors in '{}':", path);
+            for err in errors {
+                eprintln!("  {}:{}: {}", err.line, err.column, err.message);
+            }
+            std::process::exit(1);
+        }
+    };
+
+    let mut interp = interpreter::Interpreter::new();
+    if let Err(e) = interp.eval_program(&program) {
+        eprintln!("Runtime error: {}", e);
+        std::process::exit(1);
+    }
 }
