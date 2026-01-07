@@ -716,30 +716,58 @@ Common Errors:
   • "cannot add X and Y" - Type mismatch in binary operation
 
 
-12. Running Your Code
---------------------
+12. Getting Started with ArcScript
+----------------------------------
 
-You've got three ways to run ArcScript code:
+So you've got the ArcScript folder, now what? Here's everything you need
+to know to start using it.
 
-1. Execute a Script File:
+Prerequisites:
 
-     cargo run path/to/your_script.arc
+  You need Rust installed on your machine (version 1.70 or newer). If you
+  don't have it, grab it from https://rustup.rs/. It's a quick install.
 
-   This runs the script and shows you the output.
+Building ArcScript:
 
-2. Interactive REPL:
+  Open a terminal in the ArcScript folder and run:
 
-     cargo run repl
+    cargo build --release
 
-   Type code line by line and see immediate results. Great for testing
-   ideas or debugging logic. Type 'exit' to quit.
+  This compiles everything. The first time takes a minute or two because
+  Rust downloads dependencies and builds everything from scratch. After
+  that, builds are much faster.
 
-3. Demo Mode:
+  The compiled binary ends up in target/release/arcscript (or arcscript.exe
+  on Windows).
 
-     cargo run
+Running Your Code:
 
-   Runs the built-in demo from src/main.rs. Good for seeing ArcScript
-   in action if you're just starting out.
+  Once it's built, you have three ways to use ArcScript:
+
+  1. Run a Script File:
+
+       cargo run path/to/your_script.arc
+
+     Or use the compiled binary directly:
+
+       ./target/release/arcscript path/to/your_script.arc
+
+     This executes your script and prints the output.
+
+  2. Interactive REPL (Best for Learning):
+
+       cargo run repl
+
+     This opens an interactive prompt where you can type ArcScript code
+     line by line and see results immediately. Perfect for testing ideas,
+     trying out functions, or learning the syntax. Type 'exit' when done.
+
+  3. Demo Mode:
+
+       cargo run
+
+     Runs the built-in demo. Good for seeing ArcScript in action if you're
+     just getting started.
 
 Example Session:
 
