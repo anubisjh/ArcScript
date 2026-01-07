@@ -64,6 +64,9 @@ block          = { statement } ;
 statement      = var_decl
                 | if_stmt
                 | while_stmt
+                | for_stmt
+                | break_stmt
+                | continue_stmt
                 | return_stmt
                 | expr_stmt
                 ;
@@ -74,6 +77,13 @@ if_stmt        = "if" expression "then" block
                   "end" ;
 
 while_stmt     = "while" expression "do" block "end" ;
+
+for_stmt       = "for" identifier "=" expression "," expression ["," expression]
+                  "do" block "end" ;
+
+break_stmt     = "break" ";" ;
+
+continue_stmt  = "continue" ";" ;
 
 return_stmt    = "return" [ expression ] ";" ;
 
@@ -97,7 +107,7 @@ comparison     = term { ("<" | "<=" | ">" | ">=") term } ;
 
 term           = factor { ("+" | "-") factor } ;
 
-factor         = unary { ("*" | "/") unary } ;
+factor         = unary { ("*" | "/" | "%") unary } ;
 
 unary          = [ ("-" | "not") ] unary
                 | primary_expr
